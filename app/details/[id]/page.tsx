@@ -2,34 +2,39 @@ import Image from 'next/image'
 import React from 'react'
 import { QueryService } from '@/app/services/queryClient';
 import { Company, Genre } from '@/types/types';
+import { useAuth } from '@/components/Providers';
+import DetailsClient from '@/components/DetailsClient';
+import LikeButton from '@/components/LikeButton';
+
+const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(amount);
+};
+
+const formatRuntime = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
+};
+
+
+const getRatingColor = (rating: number) => {
+    if (rating >= 8) return 'text-green-500';
+    if (rating >= 6) return 'text-yellow-500';
+    return 'text-red-500';
+};
 
 const DetailsPage = async ({ params }: { params: { id: number } }) => {
     const { getMovieDetails, getPoster } = QueryService;
     const movie = await getMovieDetails(params?.id);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(amount);
-    };
-
-    const formatRuntime = (minutes: number) => {
-        const hours = Math.floor(minutes / 60);
-        const remainingMinutes = minutes % 60;
-        return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
-    };
-
-    const getRatingColor = (rating: number) => {
-        if (rating >= 8) return 'text-green-500';
-        if (rating >= 6) return 'text-yellow-500';
-        return 'text-red-500';
-    };
-
     return (
         <div className='min-h-screen bg-gray-900'>
+            <DetailsClient movieId={params?.id} />
             <div className='relative h-screen overflow-hidden'>
                 <div className='absolute inset-0'>
                     <Image
@@ -104,6 +109,12 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <div className='bg-gray-900 py-16'>
+                <div className='max-w-7xl mx-auto px-6'>
+                    <LikeButton movieId={params?.id} />
                 </div>
             </div>
 

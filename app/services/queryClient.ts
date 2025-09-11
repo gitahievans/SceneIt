@@ -19,4 +19,5 @@ export const QueryService = {
     getWeeklyTrending: () => fetchFromAPI("/trending/movie/week"),
     getMovieDetails: (id: number) => fetchFromAPI(`/movie/${id}`),
     searchMovies: (query: string) => fetchFromAPI(`/search/movie&query=${query}`),
+    getPoster: (path: string) => `https://image.tmdb.org/t/p/w500${path}`,
 }

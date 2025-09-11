@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
+import '@mantine/carousel/styles.css';
 
 export const metadata: Metadata = {
   title: "Create Next App",

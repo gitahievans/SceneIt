@@ -31,3 +31,10 @@ export interface Genre {
 export interface GenreResponse {
     genres: Genre[];
 }
+
+export type Company = {
+    id: number;
+    name: string;
+    logo_path: string;
+    origin_country: string;
+}

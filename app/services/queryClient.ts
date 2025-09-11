@@ -21,5 +21,5 @@ export const QueryService = {
     getMoviesByGenre: (genreId: number) => fetchFromAPI(`/discover/movie?with_genres=${genreId}`),
     getMovieDetails: (id: number) => fetchFromAPI(`/movie/${id}`),
     searchMovies: (query: string) => fetchFromAPI(`/search/movie&query=${query}`),
-    getPoster: (path: string) => `https://image.tmdb.org/t/p/w500${path}`,
+    getPoster: (path: string, size?: string) => `https://image.tmdb.org/t/p/${size || "w500"}${path}`,
 }

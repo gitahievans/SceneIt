@@ -1,5 +1,6 @@
 import { QueryService } from '@/app/services/queryClient';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import React from 'react'
 
 export interface MovieCardProps {
@@ -14,7 +15,7 @@ export interface MovieCardProps {
 }
 
 const MovieCard = ({ movie }: MovieCardProps) => {
-
+    const router = useRouter();
     const { getPoster } = QueryService;
     const releaseYear = new Date(movie.release_date).getFullYear();
     const getRatingColor = (rating: number) => {
@@ -24,6 +25,9 @@ const MovieCard = ({ movie }: MovieCardProps) => {
         return 'text-red-500';
     };
 
+    const handleCardPress = () => {
+        router.push(`/details/${movie.id}`);
+    }
 
     return (
         <div className="group relative w-full max-w-sm mx-auto">
@@ -32,7 +36,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
                       transform hover:-translate-y-2 hover:scale-[1.02] overflow-hidden
                       border border-gray-200 ">
                 <div className="relative overflow-hidden rounded-t-lg">
-                    <div className="relative cursor-pointer">
+                    <div className="relative cursor-pointer" onClick={handleCardPress}>
                         <Image
                             src={getPoster(movie.poster_path)}
                             alt={movie.title}
@@ -45,7 +49,10 @@ const MovieCard = ({ movie }: MovieCardProps) => {
                         />
                     </div>
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        onClick={handleCardPress}
+                    />
+
 
                     <div className="absolute top-2 right-2 sm:top-3 sm:right-3 bg-black/80 backdrop-blur-sm rounded-full 
                               px-2 py-0.5 sm:px-2.5 sm:py-1 flex items-center gap-1 text-white text-xs font-medium shadow-lg">

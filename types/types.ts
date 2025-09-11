@@ -15,3 +15,19 @@ export interface MovieItem {
     vote_average: number,
     vote_count: number
 }
+
+export interface MovieResponse {
+    page: number;
+    results: MovieItem[];
+    total_pages: number;
+    total_results: number;
+}
+
+export interface Genre {
+    id: number;
+    name: string;
+}
+
+export interface GenreResponse {
+    genres: Genre[];
+}

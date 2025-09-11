@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { MantineProvider } from '@mantine/core';
 import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
+import Providers from "@/Components/Providers";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -20,9 +20,9 @@ export default function RootLayout({
       <body
         className="antialiased"
       >
-        <MantineProvider>
+        <Providers>
           {children}
-        </MantineProvider>
+        </Providers>
       </body>
     </html>
   );

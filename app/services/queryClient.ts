@@ -4,7 +4,8 @@ const BASE_URL = "https://api.themoviedb.org/3";
 
 
 async function fetchFromAPI(endpoint: string) {
-    const res = await fetch(`${BASE_URL}${endpoint}?api_key=${API_KEY}`, {
+    const separator = endpoint.includes("?") ? "&" : "?";
+    const res = await fetch(`${BASE_URL}${endpoint}${separator}api_key=${API_KEY}`, {
         headers: {
             Authorization: `Bearer ${ACCESS_TOKEN}`,
             Accept: "application/json",
@@ -16,7 +17,8 @@ async function fetchFromAPI(endpoint: string) {
 
 export const QueryService = {
     getDailyTrending: () => fetchFromAPI("/trending/movie/day"),
-    getWeeklyTrending: () => fetchFromAPI("/trending/movie/week"),
+    getGenres: () => fetchFromAPI("/genre/movie/list"),
+    getMoviesByGenre: (genreId: number) => fetchFromAPI(`/discover/movie?with_genres=${genreId}`),
     getMovieDetails: (id: number) => fetchFromAPI(`/movie/${id}`),
     searchMovies: (query: string) => fetchFromAPI(`/search/movie&query=${query}`),
     getPoster: (path: string) => `https://image.tmdb.org/t/p/w500${path}`,

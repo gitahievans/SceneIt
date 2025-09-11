@@ -27,19 +27,23 @@ const MovieCard = ({ movie }: MovieCardProps) => {
 
     return (
         <div className="group relative w-full max-w-sm mx-auto">
-            <div className="relative bg-gradient-to-br from-white to-gray-50
+            <div className="relative bg-gradient-to-br from-white to-gray-50 cursor-pointer
                       rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 
                       transform hover:-translate-y-2 hover:scale-[1.02] overflow-hidden
                       border border-gray-200 ">
-                <div className="relative  overflow-hidden rounded-t-lg">
-                    <Image
-                        src={getPoster(movie.poster_path)}
-                        alt={movie.title}
-                        width={500}
-                        height={500}
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        priority={false}
-                    />
+                <div className="relative overflow-hidden rounded-t-lg">
+                    <div className="relative cursor-pointer">
+                        <Image
+                            src={getPoster(movie.poster_path)}
+                            alt={movie.title}
+                            width={500}
+                            height={500}
+                            className="object-cover transition-transform duration-500 group-hover:scale-110"
+                            priority={false}
+                            loading="lazy"
+                            unoptimized
+                        />
+                    </div>
 
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 

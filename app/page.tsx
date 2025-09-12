@@ -37,22 +37,21 @@ const HomePage = () => {
       queryKey: ["genreMovies", genre.id],
       queryFn: () => QueryService.getMoviesByGenre(genre.id) as Promise<MovieResponse>,
       enabled: !!genresData,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      cacheTime: 10 * 60 * 1000, // 10 minutes
+      staleTime: 5 * 60 * 1000,
+      cacheTime: 10 * 60 * 1000,
     }))
   });
 
-  // Update loaded genres when data is successfully fetched
   useEffect(() => {
     genreMoviesQueries.forEach((query, index) => {
-      if (query.data && !query.isLoading) {
+      if (query.data && !query.isLoading && query.isSuccess) {
         const genre = paginatedGenres[index];
-        if (genre) {
+        if (genre && !loadedGenres.has(genre.id)) {
           setLoadedGenres(prev => new Set([...prev, genre.id]));
         }
       }
     });
-  }, [genreMoviesQueries, paginatedGenres]);
+  }, [genreMoviesQueries.map(q => q.isSuccess).join(','), paginatedGenres.map(g => g.id).join(',')]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -94,13 +93,11 @@ const HomePage = () => {
     <div className="flex flex-col max-w-7xl mx-auto py-16 md:py-20 px-4">
       <EmailConfirmationModal />
 
-      {/* Daily Trending Section */}
       <Section
         title="🔥 Daily Trending"
         movies={moviesData?.results || []}
       />
 
-      {/* Genres Section */}
       <div id="genres-section" className="mt-8">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-2xl font-bold">Browse by Genre</h2>
@@ -133,10 +130,8 @@ const HomePage = () => {
           );
         })}
 
-        {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex flex-col items-center space-y-4 mt-12 mb-8">
-            {/* Page Numbers */}
             <div className="flex items-center space-x-2">
               <button
                 onClick={() => handlePageChange(currentPage - 1)}
@@ -146,13 +141,10 @@ const HomePage = () => {
                 Previous
               </button>
 
-              {/* Page number buttons */}
               <div className="flex space-x-1">
                 {[...Array(totalPages)].map((_, index) => {
                   const page = index + 1;
                   const isCurrentPage = page === currentPage;
-
-                  // Show first page, last page, current page, and adjacent pages
                   const showPage =
                     page === 1 ||
                     page === totalPages ||
@@ -173,8 +165,8 @@ const HomePage = () => {
                       key={page}
                       onClick={() => handlePageChange(page)}
                       className={`px-4 py-2 rounded-lg transition-colors ${isCurrentPage
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-200 hover:bg-gray-300'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300'
                         }`}
                     >
                       {page}
@@ -192,7 +184,6 @@ const HomePage = () => {
               </button>
             </div>
 
-            {/* Load More Button (Alternative UI) */}
             {currentPage < totalPages && (
               <button
                 onClick={handleLoadMore}
@@ -202,7 +193,6 @@ const HomePage = () => {
               </button>
             )}
 
-            {/* Progress Indicator */}
             <div className="w-full max-w-md">
               <div className="flex justify-between text-sm text-gray-600 mb-2">
                 <span>Progress</span>

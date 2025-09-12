@@ -6,12 +6,25 @@ import { QueryService } from './services/queryClient';
 import Section from '@/components/Section';
 import { MovieResponse, Genre, GenreResponse } from '@/types/types';
 import EmailConfirmationModal from '@/components/EmailConfirmationModal';
+import { useSearchParams } from 'next/navigation';
 
-const GENRES_PER_PAGE = 4; // Number of genres to show per page
+const GENRES_PER_PAGE = 4;
 
 const HomePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [loadedGenres, setLoadedGenres] = useState<Set<number>>(new Set());
+
+  const searchParams = useSearchParams();
+  const loginSuccess = searchParams.get('login') === 'unloaded';
+
+  useEffect(() => {
+    if (loginSuccess) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('login');
+      window.history.replaceState({}, '', url.toString());
+      window.location.reload();
+    }
+  }, [loginSuccess]);
 
   const { data: moviesData, isLoading: moviesLoading, error } = useQuery<MovieResponse>({
     queryKey: ['movies'],

@@ -18,6 +18,8 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  console.log("nav user", user);
+
   const handleSearchButtonClick = (event: React.MouseEvent) => {
     event.stopPropagation();
     setSearchOpen(true);
@@ -55,8 +57,8 @@ export default function Navbar() {
                     key={link.href}
                     href={link.href}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${path === link.href
-                        ? "bg-white/20 text-white"
-                        : "text-gray-300 hover:text-white hover:bg-white/10"
+                      ? "bg-white/20 text-white"
+                      : "text-gray-300 hover:text-white hover:bg-white/10"
                       }`}
                   >
                     {link.label}
@@ -84,15 +86,24 @@ export default function Navbar() {
 
             {!loading && !user && (
               <div className="hidden md:flex items-center space-x-3">
+                <button
+                  onClick={handleSearchButtonClick}
+                  className="p-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+                  aria-label="Search"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </button>
                 <Link
                   href="/login"
-                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg text-sm font-medium transition-all duration-200"
+                  className="px-4 py-2 text-gray-300 hover:text-white hover:bg-white/10 border border-gray-400 rounded-lg text-sm font-medium transition-all duration-200"
                 >
                   Login
                 </Link>
                 <Link
                   href="/signup"
-                  className="px-4 py-2 bg-white/20 text-white hover:bg-white/30 rounded-lg text-sm font-medium transition-all duration-200"
+                  className="px-4 py-2 bg-white/20 text-white hover:bg-white/30 border border-gray-600/20 rounded-lg text-sm font-medium transition-all duration-200"
                 >
                   Sign Up
                 </Link>
@@ -131,25 +142,24 @@ export default function Navbar() {
         {mobileMenuOpen && !loading && (
           <div className="md:hidden border-t border-white/10 bg-gray-900/95 backdrop-blur-md">
             <div className="px-4 py-3 space-y-3">
+              <button
+                onClick={handleSearchButtonClick}
+                className="flex items-center gap-3 w-full px-3 py-2 text-gray-300 border border-gray-600/20 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Search
+              </button>
               {user ? (
                 <>
-                  <button
-                    onClick={handleSearchButtonClick}
-                    className="flex items-center gap-3 w-full px-3 py-2 text-gray-300 hover:text-white hover:bg-white/10 rounded-lg transition-all duration-200"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Search
-                  </button>
-
                   {navLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${path === link.href
-                          ? "bg-white/20 text-white"
-                          : "text-gray-300 hover:text-white hover:bg-white/10"
+                        ? "bg-white/20 text-white"
+                        : "text-gray-300 hover:text-white hover:bg-white/10"
                         }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >

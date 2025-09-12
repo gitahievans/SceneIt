@@ -2,9 +2,8 @@ import Image from 'next/image'
 import React from 'react'
 import { QueryService } from '@/app/services/queryClient';
 import { Company, Genre } from '@/types/types';
-import { useAuth } from '@/components/Providers';
-import DetailsClient from '@/components/DetailsClient';
 import LikeButton from '@/components/LikeButton';
+import DetailsClient from '@/components/DetailsClient';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

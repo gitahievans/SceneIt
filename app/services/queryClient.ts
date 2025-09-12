@@ -1,7 +1,9 @@
 const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-const ACCESS_TOKEN = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const ACCESS_TOKEN = process.env.TMDB_READ_ACCESS_TOKEN;
 const BASE_URL = "https://api.themoviedb.org/3";
 
+console.log("API_KEY:", process.env.NEXT_PUBLIC_TMDB_API_KEY);
+console.log("ACCESS_TOKEN:", process.env.TMDB_READ_ACCESS_TOKEN);
 
 async function fetchFromAPI(endpoint: string) {
     const separator = endpoint.includes("?") ? "&" : "?";

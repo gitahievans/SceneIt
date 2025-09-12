@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect } from 'react'
+import React, { useState, useMemo, useEffect, Suspense } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { QueryService } from './services/queryClient';
 import Section from '@/components/Section';
@@ -103,6 +103,8 @@ const HomePage = () => {
   }
 
   return (
+    <>
+        <Suspense fallback={<div>Loading...</div>}>
     <div className="flex flex-col max-w-7xl mx-auto py-16 md:py-20 px-4">
       <EmailConfirmationModal />
 
@@ -222,6 +224,8 @@ const HomePage = () => {
         )}
       </div>
     </div>
+    </Suspense>
+    </>
   );
 };
 

@@ -11,7 +11,7 @@ import EmailConfirmationModal from '@/components/EmailConfirmationModal';
 
 const HomePage = () => {
   const { getMoviesByGenre } = QueryService;
-  
+
   const { data: moviesData, isLoading: moviesLoading, error } = useQuery<MovieResponse>({
     queryKey: ['movies'],
     queryFn: QueryService.getDailyTrending as () => Promise<MovieResponse>,
@@ -24,7 +24,7 @@ const HomePage = () => {
 
   console.log("moviesData", moviesData);
   console.log("genresData", genresData);
-  
+
 
   const genresList = genresData?.genres || [];
 
@@ -41,7 +41,7 @@ const HomePage = () => {
 
 
   return (
-    <div className="flex flex-col max-w-7xl mx-auto p-6">
+    <div className="flex flex-col max-w-7xl mx-auto py-16 md:py-20 px-4">
       <Navbar />
       <EmailConfirmationModal />
       <Section

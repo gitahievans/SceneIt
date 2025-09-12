@@ -10,9 +10,8 @@ export default async function OnboardingPage() {
         redirect("/login");
     }
 
-    // Otherwise, render the onboarding UI
     return (
-        <div className="max-w-lg mx-auto p-6">
+        <div className="max-w-4xl mx-auto p-6">
             <h1 className="text-2xl font-bold mb-4">Pick your favorite genres</h1>
             <OnboardingForm />
         </div>

@@ -53,23 +53,30 @@ export async function updateSession(request: NextRequest) {
   }
 
   // If user exists and not on public routes or onboarding page, check onboarding status
-  if (user && !isPublicRoute && pathname !== '/onboarding') {
-    try {
-      const { data: interests } = await supabase
-        .from("user_interests")
-        .select("id")
-        .eq("user_id", user.id)
-        .limit(1)
+  if (user && pathname !== '/onboarding') {
 
-      if (!interests || interests.length === 0) {
-        const onboardingResponse = NextResponse.redirect(new URL('/onboarding', request.url))
-        supabaseResponse.cookies.getAll().forEach(cookie => {
-          onboardingResponse.cookies.set(cookie.name, cookie.value, cookie)
-        })
-        return onboardingResponse
+    const skipOnboardingCheck = ['/api/', '/auth/logout'].some(route =>
+      pathname.startsWith(route)
+    )
+
+    if (!skipOnboardingCheck) {
+      try {
+        const { data: interests } = await supabase
+          .from("user_interests")
+          .select("id")
+          .eq("user_id", user.id)
+          .limit(1)
+
+        if (!interests || interests.length === 0) {
+          const onboardingResponse = NextResponse.redirect(new URL('/onboarding', request.url))
+          supabaseResponse.cookies.getAll().forEach(cookie => {
+            onboardingResponse.cookies.set(cookie.name, cookie.value, cookie)
+          })
+          return onboardingResponse
+        }
+      } catch (error) {
+        console.error('Error checking user interests:', error)
       }
-    } catch (error) {
-      console.error('Error checking user interests:', error)
     }
   }
 

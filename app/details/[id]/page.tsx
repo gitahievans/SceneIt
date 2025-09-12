@@ -106,17 +106,20 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
                                         {movie.overview}
                                     </p>
                                 </div>
+
+                                <div className='flex items-center gap-4 pt-4'>
+                                    <div className='transform hover:scale-105 transition-transform duration-200'>
+                                        <LikeButton movieId={params?.id} />
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className='bg-gray-900 py-16'>
-                <div className='max-w-7xl mx-auto px-6'>
-                    <LikeButton movieId={params?.id} />
-                </div>
-            </div>
+
 
             <div className='bg-gray-900 py-16'>
                 <div className='max-w-7xl mx-auto px-6'>

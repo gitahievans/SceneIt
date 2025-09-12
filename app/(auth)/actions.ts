@@ -50,12 +50,11 @@ export async function signup(formData: FormData) {
   if (error) {
     console.log("Signup error", error)
     redirect('/error')
-  } 
+  }
 
   console.log("Signup success");
-  console.log("Signup data", data)
-  
+  console.log("Signup data", data);
 
   revalidatePath('/', 'layout')
-  redirect('/')
+  redirect('/?signup=pending')
 }

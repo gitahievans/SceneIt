@@ -62,7 +62,7 @@ const FavoritesPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto py-20">
+    <div className="max-w-7xl mx-auto px-6 py-20">
       <h1 className="text-2xl font-bold mb-6 text-black">Movie you Liked</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {movies.map((movie) => (

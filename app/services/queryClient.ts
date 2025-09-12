@@ -29,4 +29,9 @@ export const QueryService = {
         return fetchFromAPI(`/search/movie?query=${encodedQuery}&page=${page}`);
     },
     getPoster: (path: string, size?: string) => `https://image.tmdb.org/t/p/${size || "w500"}${path}`,
+    getSimilar: (id: number) => fetchFromAPI(`/movie/${id}/similar`),
+    getPopular: () => fetchFromAPI("/movie/popular"),
+    getNowPlaying: () => fetchFromAPI("/movie/now_playing"),
+    getTopRated: () => fetchFromAPI("/movie/top_rated"),
+    getRecommendations: (id: number) => fetchFromAPI(`/movie/${id}/recommendations`),
 }

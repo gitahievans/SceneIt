@@ -4,7 +4,6 @@ import { MantineProvider } from "@mantine/core";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState, createContext, useContext, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { redirect } from "next/navigation";
 
 type AuthContextType = {
   user: any;

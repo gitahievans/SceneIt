@@ -6,7 +6,6 @@ import { QueryService } from './services/queryClient';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import Section from '@/components/Section';
 import { MovieResponse, Genre, GenreResponse } from '@/types/types';
-import Navbar from '@/components/Navbar';
 import EmailConfirmationModal from '@/components/EmailConfirmationModal';
 
 const HomePage = () => {
@@ -42,7 +41,6 @@ const HomePage = () => {
 
   return (
     <div className="flex flex-col max-w-7xl mx-auto py-16 md:py-20 px-4">
-      <Navbar />
       <EmailConfirmationModal />
       <Section
         title="🔥 Daily Trending"

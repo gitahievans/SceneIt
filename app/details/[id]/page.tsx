@@ -35,7 +35,7 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
     return (
         <div className='min-h-screen bg-gray-900'>
             <DetailsClient movieId={params?.id} />
-            <div className='relative h-screen overflow-hidden'>
+            <div className='relative lg:h-screen'>
                 <div className='absolute inset-0'>
                     <Image
                         src={getPoster(movie.backdrop_path, 'w1280')}
@@ -118,8 +118,6 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
                     </div>
                 </div>
             </div>
-
-
 
             <div className='bg-gray-900 py-16'>
                 <div className='max-w-7xl mx-auto px-6'>

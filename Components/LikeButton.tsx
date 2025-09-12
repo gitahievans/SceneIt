@@ -82,7 +82,7 @@ export default function LikeButton({ movieId }: { movieId: number }) {
     >
       <div className="relative">
         <svg 
-          className={`w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-all duration-300 ${
+          className={`w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-all duration-500 ${
             loading
               ? 'fill-none animate-pulse'
               : liked 

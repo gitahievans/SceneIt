@@ -20,6 +20,13 @@ export const QueryService = {
     getGenres: () => fetchFromAPI("/genre/movie/list"),
     getMoviesByGenre: (genreId: number) => fetchFromAPI(`/discover/movie?with_genres=${genreId}`),
     getMovieDetails: (id: number) => fetchFromAPI(`/movie/${id}`),
-    searchMovies: (query: string) => fetchFromAPI(`/search/movie&query=${query}`),
+    searchMovies: (query: string) => {
+        const encodedQuery = encodeURIComponent(query.trim());
+        return fetchFromAPI(`/search/movie?query=${encodedQuery}`);
+    },
+    searchMoviesWithPage: (query: string, page: number = 1) => {
+        const encodedQuery = encodeURIComponent(query.trim());
+        return fetchFromAPI(`/search/movie?query=${encodedQuery}&page=${page}`);
+    },
     getPoster: (path: string, size?: string) => `https://image.tmdb.org/t/p/${size || "w500"}${path}`,
 }

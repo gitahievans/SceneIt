@@ -3,6 +3,7 @@ import "./globals.css";
 import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
 import Providers from "@/components/Providers";
+import GlobalLayout from "@/components/GlobalLayout";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -21,7 +22,9 @@ export default function RootLayout({
         className="antialiased"
       >
         <Providers>
-          {children}
+          <GlobalLayout>
+            {children}
+          </GlobalLayout>
         </Providers>
       </body>
     </html>

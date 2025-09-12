@@ -36,7 +36,7 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  const publicRoutes = ['/login', '/signup', '/auth/confirm', '/auth/callback', '/', '/details/:id']
+  const publicRoutes = ['/login', '/signup', '/auth/confirm', '/auth/callback', '/', '/details/']
   const isPublicRoute = publicRoutes.some(route => {
     if (route === '/') {
       return pathname === '/'

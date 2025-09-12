@@ -13,17 +13,27 @@ export async function POST(req: Request) {
         }
 
         if (action === 'favorited') {
-            const { data: existing } = await supabase
-                .from("user_movie_interactions")
-                .select("*")
-                .eq("user_id", user_id)
-                .eq("movie_id", movie_id)
-                .maybeSingle();
+            const { error } = await supabase.from("user_movie_interactions")
+                .upsert([{
+                    user_id,
+                    movie_id,
+                    action: 'favorited',
+                    rating,
+                    updated_at: new Date().toISOString(),
+                }], {
+                    onConflict: 'user_id, movie_id'
+                });
 
-            if (existing) {
-                await supabase.from("user_movie_interactions").delete().eq("id", existing.id);
-                return NextResponse.json({ message: "Unliked" }, { status: 200 });
-            }
+            if (error) throw error;
+            return NextResponse.json({ message: "Movie favorited" }, { status: 200 });
+        } else if (action === 'unfavorited') {
+            const { error } = await supabase.from("user_movie_interactions")
+                .delete()
+                .eq("user_id", user_id)
+                .eq("movie_id", movie_id);
+
+            if (error) throw error;
+            return NextResponse.json({ message: "Movie unfavorited" }, { status: 200 });
         }
 
         const { error } = await supabase.from("user_movie_interactions").insert([{

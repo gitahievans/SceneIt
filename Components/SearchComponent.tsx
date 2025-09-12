@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 import { Film, Search, X } from "lucide-react";
 import Image from "next/image";
 import { QueryService } from "@/app/services/queryClient";
-import { MovieItem } from "@/types/types";
+import { Genre, MovieItem } from "@/types/types";
 import { renderDefaultContent } from "./Search/DefaultSearchContent";
 import SpotLight from "./Search/SpotLight";
 import SearchBar from "./Search/SearchBar";
@@ -15,6 +15,12 @@ interface SearchComponentProps {
     onSearchClick?: (event: React.MouseEvent) => void;
     isSpotlight?: boolean;
     onClose?: () => void;
+}
+
+export interface DefaultSection {
+    genreId: number;
+    movies: MovieItem[];
+    name: string;
 }
 
 const SearchComponent: React.FC<SearchComponentProps> = ({
@@ -38,7 +44,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     const { getPoster, searchMovies } = QueryService;
 
     const [defaultSections, setDefaultSections] = useState<
-        { genreId: number; movies: MovieItem[] }[]
+        DefaultSection[]
     >([]);
 
     useEffect(() => {
@@ -60,7 +66,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             const genreNames = await Promise.all(
                 genres.map(async (genreId) => {
                     const res = await QueryService.getGenres();
-                    return { genreId, name: res.genres.find((g: any) => g.id === genreId)?.name };
+                    return { genreId, name: res.genres.find((g: Genre) => g.id === genreId)?.name };
                 })
             );
 
@@ -99,7 +105,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             if (abortControllerRef.current?.signal.aborted) {
                 return;
             }
-            const movies: MovieItem[] = response.results?.map((movie: any) => ({
+            const movies: MovieItem[] = response.results?.map((movie: MovieItem) => ({
                 id: movie.id,
                 title: movie.title,
                 overview: movie.overview,

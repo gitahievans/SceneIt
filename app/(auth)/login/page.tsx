@@ -94,7 +94,7 @@ export default function LoginPage() {
                                 <div className="w-full border-t border-white/30"></div>
                             </div>
                             <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-white/40 text-gray-600 font-medium">Don't have an account?</span>
+                                <span className="px-4 bg-white/40 text-gray-600 font-medium">Don&apos;t have an account?</span>
                             </div>
                         </div>
                         <div className="mt-4">

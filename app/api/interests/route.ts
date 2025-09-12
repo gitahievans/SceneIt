@@ -35,8 +35,13 @@ export async function POST(req: Request) {
     if (error) throw error;
 
     return NextResponse.json({ message: "Interests saved successfully" });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    let message = "Failed to save interests";
+    if (err instanceof Error) {
+      message += ": " + err.message;
+    }
+    console.error("Error saving interests:", err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -59,7 +64,12 @@ export async function GET(req: Request) {
     if (error) throw error;
 
     return NextResponse.json({ interests: data.map((d) => d.genre_id) });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    let message = "Failed to get interests";
+    if (err instanceof Error) {
+      message += ": " + err.message;
+    }
+    console.error("Error getting interests:", err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

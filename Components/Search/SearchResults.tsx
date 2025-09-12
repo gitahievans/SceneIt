@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import React, { useState } from 'react'
-import { MovieItem } from '@/types/types';
+import { Genre, MovieItem } from '@/types/types';
 import { Search } from 'lucide-react';
 import { QueryService } from '@/app/services/queryClient';
 
@@ -20,8 +20,7 @@ const SearchResults = ({ item,
     const { getGenres } = QueryService;
     const [genreNames, setGenreNames] = useState<string[]>([]);
     getGenres().then((data) => {
-        const genreNames = data.genres.filter((genre: any) => item.genre_ids.includes(genre.id)).map((genre: any) => genre.name);
-        // console.log(genreNames);
+        const genreNames = data.genres.filter((genre: Genre) => item.genre_ids.includes(genre.id)).map((genre: Genre) => genre.name);
         setGenreNames(genreNames);
     });
 

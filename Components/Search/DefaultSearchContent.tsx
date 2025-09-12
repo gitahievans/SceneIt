@@ -2,17 +2,18 @@ import { QueryService } from "@/app/services/queryClient";
 import { Genre, MovieItem } from "@/types/types";
 import { Film } from "lucide-react";
 import Image from "next/image";
+import { DefaultSection } from "../SearchComponent";
 
-export const renderDefaultContent = (defaultSections: any, handleResultClick: (id: number) => void, formatReleaseDate: (dateString: string) => string) => (
+export const renderDefaultContent = (defaultSections: DefaultSection[], handleResultClick: (id: number) => void, formatReleaseDate: (dateString: string) => string) => (
     <div className="p-6">
         <div className="mb-8 text-center">
             <h2 className="text-2xl font-bold text-white mb-2">Discover Movies</h2>
             <p className="text-gray-400">Based on your Interests</p>
         </div>
 
-        {defaultSections.map((section: any) => (
+        {defaultSections.map((section: DefaultSection) => (
             <div key={crypto.randomUUID()} className="mb-8">
-                <div className={`bg-gradient-to-r ${section.gradient} rounded-lg p-4 mb-4`}>
+                <div className={`bg-gradient-to-r rounded-lg p-4 mb-4`}>
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <Film className="w-6 h-6 text-white" />

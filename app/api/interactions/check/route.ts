@@ -28,10 +28,14 @@ export async function GET(req: Request) {
 
         return NextResponse.json({ exists: !!data }, { status: 200 });
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        let message = "Failed to check interaction";
+        if (error instanceof Error) {
+            message += ": " + error.message;
+        }
         console.error("Error checking interaction:", error);
         return NextResponse.json({ 
-            error: "Failed to check interaction: " + error.message 
+            error: message 
         }, { status: 500 });
     }
 }

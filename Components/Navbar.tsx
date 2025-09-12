@@ -66,7 +66,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-2 px-3 py-2 bg-white/10 backdrop-blur-sm rounded-lg border border-white/10">
                   <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                   <span className="text-sm text-white">
-                    {user.email.split('@')[0]}
+                    {user?.email?.split('@')[0]}
                   </span>
                 </div>
 
@@ -161,12 +161,12 @@ export default function Navbar() {
                   <div className="flex items-center gap-3 px-3 py-2 bg-white/10 rounded-lg border border-white/10">
                     <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                       <span className="text-sm font-bold text-white">
-                        {user.email.charAt(0).toUpperCase()}
+                        {user?.email?.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
                       <div className="text-sm text-white font-medium">
-                        {user.email.split('@')[0]}
+                        {user?.email?.split('@')[0]}
                       </div>
                       <div className="text-xs text-gray-400">Online</div>
                     </div>

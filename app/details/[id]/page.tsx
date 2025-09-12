@@ -69,7 +69,7 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
                                     </h1>
                                     {movie.tagline && (
                                         <p className='text-lg md:text-xl text-gray-300 italic mb-6'>
-                                            "{movie.tagline}"
+                                            {movie.tagline}
                                         </p>
                                     )}
                                 </div>

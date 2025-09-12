@@ -56,8 +56,13 @@ export async function POST(req: Request) {
 
         return NextResponse.json({ message: "Interaction recorded" }, { status: 200 });
 
-    } catch (error: any) {
+    }
+    catch (error: unknown) {
+        let message = "Failed to record interaction";
+        if (error instanceof Error) {
+            message += ": " + error.message;
+        }
         console.error("Error recording interaction:", error);
-        return NextResponse.json({ error: "Failed to record interaction: " + error.message }, { status: 500 });
+        return NextResponse.json({ error: message }, { status: 500 });
     }
 }

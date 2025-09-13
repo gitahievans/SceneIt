@@ -6,6 +6,7 @@ import Section from '@/components/Section';
 import { MovieResponse, Genre, GenreResponse } from '@/types/types';
 import EmailConfirmationModal from '@/components/EmailConfirmationModal';
 import { QueryService } from '@/app/services/queryClient';
+import HomeHeroSection from './HomeHeroSection';
 
 const GENRES_PER_PAGE = 4;
 
@@ -23,7 +24,10 @@ const HomePageContent = () => {
         queryFn: QueryService.getGenres as () => Promise<GenreResponse>,
     });
 
-    const genresList = genresData?.genres || [];
+    const genresList = useMemo(() => {
+        return genresData?.genres || [];
+    }, [genresData]);
+
     const totalPages = Math.ceil(genresList.length / GENRES_PER_PAGE);
 
     const paginatedGenres = useMemo(() => {
@@ -51,7 +55,7 @@ const HomePageContent = () => {
                 }
             }
         });
-    }, [genreMoviesQueries.map(q => q.isSuccess).join(','), paginatedGenres.map(g => g.id).join(',')]);
+    }, [genreMoviesQueries, paginatedGenres, loadedGenres]);
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
@@ -90,123 +94,125 @@ const HomePageContent = () => {
     }
 
     return (
-        <div className="flex flex-col max-w-7xl mx-auto py-16 md:py-20 px-4">
-            <EmailConfirmationModal />
+        <div>
+            <HomeHeroSection />
+            <div className="flex flex-col max-w-7xl mx-auto md:mt-12 mt-8 px-4">
+                <EmailConfirmationModal />
+                <Section
+                    title="🔥 Daily Trending"
+                    movies={moviesData?.results || []}
+                />
 
-            <Section
-                title="🔥 Daily Trending"
-                movies={moviesData?.results || []}
-            />
-
-            <div id="genres-section" className="mt-8">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-bold">Browse by Genre</h2>
-                    <div className="text-sm text-gray-600">
-                        Page {currentPage} of {totalPages} • {genresList.length} genres total
+                <div id="genres-section" className="mt-8">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-2xl font-bold">Browse by Genre</h2>
+                        <div className="text-sm text-gray-600">
+                            Page {currentPage} of {totalPages} • {genresList.length} genres total
+                        </div>
                     </div>
-                </div>
 
-                {paginatedGenres.map((genre: Genre, index: number) => {
-                    const queryResult = genreMoviesQueries[index];
-                    const genreMovies = queryResult?.data?.results || [];
-                    const loading = queryResult?.isLoading || false;
+                    {paginatedGenres.map((genre: Genre, index: number) => {
+                        const queryResult = genreMoviesQueries[index];
+                        const genreMovies = queryResult?.data?.results || [];
+                        const loading = queryResult?.isLoading || false;
 
-                    return (
-                        <div key={genre.id} className="mb-4">
-                            <Section
-                                title={genre.name}
-                                movies={loading ? [] : genreMovies}
-                            />
-                            {loading && (
-                                <div className="flex items-center justify-center py-8">
-                                    <div className="animate-pulse flex space-x-4">
-                                        {[...Array(5)].map((_, i) => (
-                                            <div key={i} className="bg-gray-300 h-64 w-44 rounded-lg"></div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-
-                {totalPages > 1 && (
-                    <div className="flex flex-col items-center space-y-4 mt-12 mb-8">
-                        <div className="flex items-center space-x-2">
-                            <button
-                                onClick={() => handlePageChange(currentPage - 1)}
-                                disabled={currentPage === 1}
-                                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                Previous
-                            </button>
-
-                            <div className="flex space-x-1">
-                                {[...Array(totalPages)].map((_, index) => {
-                                    const page = index + 1;
-                                    const isCurrentPage = page === currentPage;
-                                    const showPage =
-                                        page === 1 ||
-                                        page === totalPages ||
-                                        Math.abs(page - currentPage) <= 1;
-
-                                    if (!showPage && page === 2 && currentPage > 4) {
-                                        return <span key={page} className="px-2">...</span>;
-                                    }
-
-                                    if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
-                                        return <span key={page} className="px-2">...</span>;
-                                    }
-
-                                    if (!showPage) return null;
-
-                                    return (
-                                        <button
-                                            key={page}
-                                            onClick={() => handlePageChange(page)}
-                                            className={`px-4 py-2 rounded-lg transition-colors ${isCurrentPage
-                                                ? 'bg-blue-600 text-white'
-                                                : 'bg-gray-200 hover:bg-gray-300'
-                                                }`}
-                                        >
-                                            {page}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-
-                            <button
-                                onClick={() => handlePageChange(currentPage + 1)}
-                                disabled={currentPage === totalPages}
-                                className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                            >
-                                Next
-                            </button>
-                        </div>
-
-                        {currentPage < totalPages && (
-                            <button
-                                onClick={handleLoadMore}
-                                className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform shadow-lg"
-                            >
-                                Load More Genres ({totalPages - currentPage} remaining)
-                            </button>
-                        )}
-
-                        <div className="w-full max-w-md">
-                            <div className="flex justify-between text-sm text-gray-600 mb-2">
-                                <span>Progress</span>
-                                <span>{currentPage}/{totalPages}</span>
-                            </div>
-                            <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div
-                                    className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
-                                    style={{ width: `${(currentPage / totalPages) * 100}%` }}
+                        return (
+                            <div key={genre.id} className="mb-4">
+                                <Section
+                                    title={genre.name}
+                                    movies={loading ? [] : genreMovies}
                                 />
+                                {loading && (
+                                    <div className="flex items-center justify-center py-8">
+                                        <div className="animate-pulse flex space-x-4">
+                                            {[...Array(5)].map((_, i) => (
+                                                <div key={i} className="bg-gray-300 h-64 w-44 rounded-lg"></div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })}
+
+                    {totalPages > 1 && (
+                        <div className="flex flex-col items-center space-y-4 mt-12 mb-8">
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={() => handlePageChange(currentPage - 1)}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Previous
+                                </button>
+
+                                <div className="flex space-x-1">
+                                    {[...Array(totalPages)].map((_, index) => {
+                                        const page = index + 1;
+                                        const isCurrentPage = page === currentPage;
+                                        const showPage =
+                                            page === 1 ||
+                                            page === totalPages ||
+                                            Math.abs(page - currentPage) <= 1;
+
+                                        if (!showPage && page === 2 && currentPage > 4) {
+                                            return <span key={page} className="px-2">...</span>;
+                                        }
+
+                                        if (!showPage && page === totalPages - 1 && currentPage < totalPages - 3) {
+                                            return <span key={page} className="px-2">...</span>;
+                                        }
+
+                                        if (!showPage) return null;
+
+                                        return (
+                                            <button
+                                                key={page}
+                                                onClick={() => handlePageChange(page)}
+                                                className={`px-4 py-2 rounded-lg transition-colors ${isCurrentPage
+                                                    ? 'bg-blue-600 text-white'
+                                                    : 'bg-gray-200 hover:bg-gray-300'
+                                                    }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+
+                                <button
+                                    onClick={() => handlePageChange(currentPage + 1)}
+                                    disabled={currentPage === totalPages}
+                                    className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+
+                            {currentPage < totalPages && (
+                                <button
+                                    onClick={handleLoadMore}
+                                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:scale-105 transition-transform shadow-lg"
+                                >
+                                    Load More Genres ({totalPages - currentPage} remaining)
+                                </button>
+                            )}
+
+                            <div className="w-full max-w-md">
+                                <div className="flex justify-between text-sm text-gray-600 mb-2">
+                                    <span>Progress</span>
+                                    <span>{currentPage}/{totalPages}</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        className="bg-gradient-to-r from-blue-600 to-purple-600 h-2 rounded-full transition-all duration-300"
+                                        style={{ width: `${(currentPage / totalPages) * 100}%` }}
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                )}
+                    )}
+                </div>
             </div>
         </div>
     );

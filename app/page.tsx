@@ -1,6 +1,6 @@
 
 import HomePageContent from '@/components/HomeComponent';
-import SearchParamsHandler from '@/components/SearchParamHandler';
+import LoginCheckHandler from '@/components/LoginCheckHandler';
 import { Suspense } from 'react';
 
 const HomePage = () => {
@@ -13,7 +13,7 @@ const HomePage = () => {
         </div>
       </div>
     }>
-      <SearchParamsHandler />
+      <LoginCheckHandler />
       <HomePageContent />
     </Suspense>
   );

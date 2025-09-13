@@ -3,7 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
-const SearchParamsHandler = () => {
+const LoginCheckHandler = () => {
     const searchParams = useSearchParams();
     const loginSuccess = searchParams.get('login') === 'unloaded';
 
@@ -19,5 +19,5 @@ const SearchParamsHandler = () => {
     return null;
 };
 
-export default SearchParamsHandler;
+export default LoginCheckHandler;
 

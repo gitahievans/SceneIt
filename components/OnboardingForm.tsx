@@ -57,7 +57,7 @@ export default function OnboardingForm() {
                         <div className="flex items-center justify-center gap-3 mb-6">
                             <div>
                                 <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-gray-800 to-gray-600 bg-clip-text text-transparent">
-                                    Welcome to MovieApp!
+                                    Welcome to SceneIt!
                                 </h1>
                                 <div className="h-1 w-24 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mx-auto mt-2"></div>
                             </div>

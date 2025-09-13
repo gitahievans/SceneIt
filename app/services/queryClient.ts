@@ -36,4 +36,6 @@ export const QueryService = {
     getNowPlaying: () => fetchFromAPI("/movie/now_playing"),
     getTopRated: () => fetchFromAPI("/movie/top_rated"),
     getRecommendations: (id: number) => fetchFromAPI(`/movie/${id}/recommendations`),
+    getMovieVideos: (id: number) => fetchFromAPI(`/movie/${id}/videos`),
+    getPopularMovies: () => fetchFromAPI("/movie/popular"),
 }

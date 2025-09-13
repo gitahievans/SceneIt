@@ -21,6 +21,7 @@ export default function Navbar() {
   console.log("nav user", user);
 
   const handleSearchButtonClick = (event: React.MouseEvent) => {
+    // console.log("search button clicked");
     event.stopPropagation();
     setSearchOpen(true);
   };

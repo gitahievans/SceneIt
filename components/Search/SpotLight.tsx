@@ -16,15 +16,15 @@ const SpotLight = ({ onClose, inputRef, searchTerm, handleSearchChange, clearSea
     console.log("SpotLight", isSpotlight);
 
     const handleBackdropClick = (event: React.MouseEvent) => {
-        // Only close if clicking the backdrop itself, not its children
         if (event.target === event.currentTarget) {
             onClose?.();
         }
     };
 
-
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
+            // this function receives the click event and checks if the click happened within the search container
+            // if it did not, it closes the spotlight via the onClose prop
             if (
                 searchRef.current &&
                 !searchRef.current.contains(event.target as Node)
@@ -48,7 +48,7 @@ const SpotLight = ({ onClose, inputRef, searchTerm, handleSearchChange, clearSea
     return (
         <div className="fixed inset-0 z-[100] flex items-start justify-center pt-20 px-4">
             <div
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+                className="fixed inset-0 bg-black/50 backdrop-blur-xs"
                 onClick={handleBackdropClick}
             />
             <div

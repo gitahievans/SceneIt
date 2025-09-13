@@ -5,7 +5,6 @@ import { redirect } from 'next/navigation'
 
 import { createClient } from '@/utils/supabase/server'
 
-// add useful logs below
 export async function login(formData: FormData) {
   const supabase = await createClient()
 

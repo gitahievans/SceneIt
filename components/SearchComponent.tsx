@@ -165,6 +165,8 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     useEffect(() => {
         if (!isSpotlight) {
             const handleClickOutside = (event: MouseEvent) => {
+                console.log("handleClickOutside", event);
+                
                 if (
                     searchRef.current &&
                     !searchRef.current.contains(event.target as Node) &&
@@ -301,7 +303,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     if (isSpotlight) {
         return (
             <SpotLight
-                onClose={() => setShowResults(false)}
+                onClose={onClose}
                 inputRef={inputRef}
                 searchTerm={searchTerm}
                 handleSearchChange={handleSearchChange}

@@ -9,7 +9,7 @@ const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className="min-h-screen bg-gray-50">
             {!pathname.includes('details') && <Navbar />}
-            <div className="mt-8">
+            <div className={pathname.includes('details') ? 'mt-0' : 'mt-8'}>
                 {children}
             </div>
         </div>

@@ -9,9 +9,10 @@ const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
     return (
         <div className="min-h-screen bg-gray-50">
             {!pathname.includes('details') && <Navbar />}
-            {children}
+            <div className="mt-8">
+                {children}
+            </div>
         </div>
-        // dark:bg-gray-900
     )
 }
 

@@ -121,7 +121,7 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
             <div className='bg-gray-900 py-16'>
                 <div className='max-w-7xl mx-auto px-6'>
                     <div className='grid grid-cols-1 lg:grid-cols-2 gap-12'>
-                        <div className='bg-gray-800 rounded-2xl p-8'>
+                        <div className='bg-transparent border border-white/10 shadow-2xl shadow-amber-50/30 rounded-2xl p-8 backdrop-blur-md'>
                             <h2 className='text-2xl font-bold text-white mb-6'>Movie Details</h2>
                             <div className='space-y-4'>
                                 <div className='flex justify-between items-center py-2 border-b border-gray-700'>
@@ -169,7 +169,7 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
                             </div>
                         </div>
 
-                        <div className='bg-gray-800 rounded-2xl p-8'>
+                        <div className='bg-transparent border border-white/10 shadow-2xl shadow-amber-50/30 rounded-2xl p-8 backdrop-blur-md'>
                             <h2 className='text-2xl font-bold text-white mb-6'>Production</h2>
                             <div className='space-y-6'>
                                 {movie.production_companies.map((company: Company) => (

@@ -70,14 +70,14 @@ function DiscoverHero() {
             <div className="h-[70vh] mx-4 my-24 flex items-center justify-center">
                 <div className="flex items-center space-x-4">
                     <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
-                    <span className="text-white text-xl font-medium">Discovering amazing movies...</span>
+                    <span className="text-black text-xl font-medium">Discovering amazing movies...</span>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="mx-4 mt-24">
+        <div className="mx-4">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 h-[70vh] max-w-7xl mx-auto">
                 <div className="col-span-1 md:col-span-2 relative rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-black shadow-2xl group">
                     <div className="absolute inset-0">

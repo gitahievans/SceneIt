@@ -28,7 +28,7 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-orange-50/20 max-w-7xl mx-auto border-b border-white/10 shadow-lg">
+      <nav className="sticky top-0 z-50 backdrop-blur-md max-w-7xl mx-auto">
         <div className="max-w-full mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <Link
@@ -141,7 +141,7 @@ export default function Navbar() {
         </div>
 
         {mobileMenuOpen && !loading && (
-          <div className="md:hidden border-t border-white/10 bg-orange-50/95 backdrop-blur-md">
+          <div className="md:hidden border-t border-white/10 bg-transparent backdrop-blur-3xl">
             <div className="px-4 py-3 space-y-3">
               <button
                 onClick={handleSearchButtonClick}

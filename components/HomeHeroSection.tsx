@@ -78,7 +78,7 @@ function DiscoverHero() {
 
     return (
         <div className="mx-4 mt-24">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 h-[70vh] max-w-full mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 h-[70vh] max-w-7xl mx-auto">
                 <div className="col-span-1 md:col-span-2 relative rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-black shadow-2xl group">
                     <div className="absolute inset-0">
                         {randomVideo ? (

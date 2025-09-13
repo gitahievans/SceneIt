@@ -7,6 +7,7 @@ import { MovieResponse, Genre, GenreResponse } from '@/types/types';
 import EmailConfirmationModal from '@/components/EmailConfirmationModal';
 import { QueryService } from '@/app/services/queryClient';
 import HomeHeroSection from './HomeHeroSection';
+import Loading from './Loader';
 
 const GENRES_PER_PAGE = 4;
 
@@ -73,12 +74,7 @@ const HomePageContent = () => {
 
     if (moviesLoading || genresLoading) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-lg">Loading amazing content...</p>
-                </div>
-            </div>
+            <Loading />
         );
     }
 

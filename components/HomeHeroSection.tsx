@@ -9,6 +9,7 @@ import { MovieItem } from "@/types/types";
 import { toggleLike, checkLikedStatus } from "./LikeButton";
 import { useRouter } from "next/navigation";
 import { Check, Plus, TicketCheck } from "lucide-react";
+import Loading from "./Loader";
 
 function DiscoverHero() {
     const { user } = useAuth();
@@ -67,12 +68,7 @@ function DiscoverHero() {
 
     if (!mainMovie) {
         return (
-            <div className="h-[70vh] mx-4 my-24 flex items-center justify-center">
-                <div className="flex items-center space-x-4">
-                    <div className="animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
-                    <span className="text-black text-xl font-medium">Discovering amazing movies...</span>
-                </div>
-            </div>
+            <Loading />
         );
     }
 

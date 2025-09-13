@@ -7,6 +7,7 @@ import { MovieItem } from "@/types/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { QueryService } from "../services/queryClient";
+import Loading from "@/components/Loader";
 
 const FavoritesPage = () => {
   const [movies, setMovies] = useState<MovieItem[]>([]);
@@ -46,9 +47,7 @@ const FavoritesPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <p className="text-gray-800">Loading favorites...</p>
-      </div>
+      <Loading />
     );
   }
 
@@ -62,7 +61,7 @@ const FavoritesPage = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-20">
+    <div className="max-w-7xl mx-auto px-6">
       <h1 className="text-2xl font-bold mb-6 text-black">Movie you Liked</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {movies.map((movie) => (
@@ -78,7 +77,7 @@ const FavoritesPage = () => {
               height={450}
               className="rounded-lg object-cover transition-transform transform group-hover:scale-105"
             />
-            <h3 className="text-sm mt-2 text-gray-800 truncate">
+            <h3 className="text-sm mt-2 font-semibold text-gray-800 truncate">
               {movie.title}
             </h3>
           </div>

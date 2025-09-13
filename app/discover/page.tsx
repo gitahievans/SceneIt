@@ -6,6 +6,7 @@ import { getUserInterests, getUserLikes } from "@/utils/supabase/queries";
 import { QueryService } from "@/app/services/queryClient";
 import { MovieItem } from "@/types/types";
 import Section from "@/components/Section";
+import Loading from "@/components/Loader";
 
 const DiscoverPage = () => {
   const [trending, setTrending] = useState<MovieItem[]>([]);
@@ -26,7 +27,6 @@ const DiscoverPage = () => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
-      // Always fetch global sections
       const [trendingRes, popularRes, nowPlayingRes] = await Promise.all([
         QueryService.getDailyTrending(),
         QueryService.getPopular(),
@@ -37,12 +37,9 @@ const DiscoverPage = () => {
       setPopular(popularRes.results || []);
       setNowPlaying(nowPlayingRes.results || []);
 
-      // If logged in → personalized sections
       if (user) {
         const interests = await getUserInterests(user.id);
         const likes = await getUserLikes(user.id);
-
-        // Genre-based sections
         const genreResults = await Promise.all(
           interests.map(async (genreId) => {
             const res = await QueryService.getMoviesByGenre(genreId);
@@ -51,7 +48,6 @@ const DiscoverPage = () => {
         );
         setGenreSections(genreResults);
 
-        // Recommendations based on liked movies
         const recResults = await Promise.all(
           likes.slice(0, 3).map(async (movieId) => {
             const details = await QueryService.getMovieDetails(movieId);
@@ -73,20 +69,19 @@ const DiscoverPage = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen text-gray-400">
-        Loading Discover...
-      </div>
+      <Loading />
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold text-white mb-6">Discover</h1>
+    <div className="max-w-7xl mx-auto space-y-8">
+      <h1 className="text-3xl font-semibold text-black">Based on your Interests and What's Trending</h1>
 
-      {/* Global sections */}
-      <Section title="🔥 Trending Now" movies={trending} />
-      <Section title="⭐ Popular" movies={popular} />
-      <Section title="🎬 Now Playing" movies={nowPlaying} />
+      <>
+        <Section title="🔥 Trending Now" movies={trending} />
+        <Section title="⭐ Popular" movies={popular} />
+        <Section title="🎬 Now Playing" movies={nowPlaying} />
+      </>
 
       {/* Personalized genre picks */}
       {genreSections.map((section) => (

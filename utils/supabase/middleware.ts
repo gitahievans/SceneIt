@@ -1,6 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const baseurl = process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : 'https://seen-it-aymo.vercel.app'
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -68,7 +70,7 @@ export async function updateSession(request: NextRequest) {
           .limit(1)
 
         if (!interests || interests.length === 0) {
-          const onboardingResponse = NextResponse.redirect(new URL('/onboarding', request.url))
+          const onboardingResponse = NextResponse.redirect(new URL(`${baseurl}/onboarding`, request.url))
           supabaseResponse.cookies.getAll().forEach(cookie => {
             onboardingResponse.cookies.set(cookie.name, cookie.value, cookie)
           })

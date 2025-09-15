@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactNode, useState, createContext, useContext, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
+import { ThemeProvider } from "next-themes";
 
 type AuthContextType = {
   user: User | null;
@@ -21,7 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     const initAuth = async () => {
       const supabase = await createClient();
-      
+
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       setLoading(false);
@@ -65,9 +66,11 @@ export default function Providers({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <MantineProvider>
-          {children}
-        </MantineProvider>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <MantineProvider>
+            {children}
+          </MantineProvider>
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

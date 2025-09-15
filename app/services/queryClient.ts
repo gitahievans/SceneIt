@@ -2,9 +2,6 @@ const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN;
 const BASE_URL = "https://api.themoviedb.org/3";
 
-console.log("API_KEY:", process.env.NEXT_PUBLIC_TMDB_API_KEY);
-console.log("ACCESS_TOKEN:", process.env.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN);
-
 async function fetchFromAPI(endpoint: string) {
     const separator = endpoint.includes("?") ? "&" : "?";
     const res = await fetch(`${BASE_URL}${endpoint}${separator}api_key=${API_KEY}`, {
@@ -38,4 +35,6 @@ export const QueryService = {
     getRecommendations: (id: number) => fetchFromAPI(`/movie/${id}/recommendations`),
     getMovieVideos: (id: number) => fetchFromAPI(`/movie/${id}/videos`),
     getPopularMovies: () => fetchFromAPI("/movie/popular"),
+    getTvShowsGenreList: () => fetchFromAPI("/genre/tv/list"),
+    getMoviesGenreList: () => fetchFromAPI("/genre/movie/list"),
 }

@@ -19,6 +19,7 @@ const SearchResults = ({ item,
     console.log("item in search results", item);
     const { getGenres } = QueryService;
     const [genreNames, setGenreNames] = useState<string[]>([]);
+    
     getGenres().then((data) => {
         const genreNames = data.genres.filter((genre: Genre) => item.genre_ids.includes(genre.id)).map((genre: Genre) => genre.name);
         setGenreNames(genreNames);
@@ -28,10 +29,10 @@ const SearchResults = ({ item,
         <div
             key={item.id}
             onClick={() => handleResultClick(item.id)}
-            className="px-6 py-4 hover:bg-gray-900 cursor-pointer transition-colors border-b border-gray-800 last:border-b-0"
+            className="px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors border-b border-gray-200 dark:border-gray-700 last:border-b-0"
         >
             <div className="flex items-start space-x-4">
-                <div className="w-20 h-28 bg-gray-800 rounded flex-shrink-0 overflow-hidden">
+                <div className="w-20 h-28 bg-gray-200 dark:bg-gray-800 rounded flex-shrink-0 overflow-hidden">
                     {item.poster_path ? (
                         <Image
                             src={getPoster(item.poster_path)}
@@ -43,34 +44,34 @@ const SearchResults = ({ item,
                             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
                     ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                             <Search className="w-8 h-8" />
                         </div>
                     )}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-gray-300 font-semibold text-base truncate">
+                    <h3 className="text-gray-900 dark:text-gray-100 font-semibold text-base truncate">
                         {item.title}
                     </h3>
-                    <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mt-1 line-clamp-2">
                         {truncateText(item.overview, 120)}
                     </p>
                     <div className="flex items-center mt-2 space-x-2">
                         {item.release_date && (
-                            <span className="text-xs text-gray-500">
+                            <span className="text-xs text-gray-500 dark:text-gray-400">
                                 {formatReleaseDate(item.release_date)}
                             </span>
                         )}
                         {item.vote_average && (
-                            <span className="text-xs text-orange-400">
+                            <span className="text-xs text-orange-500 dark:text-orange-400">
                                 ★ {item.vote_average.toFixed(1)}
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center mt-2 space-x-2 ">
+                    <div className="flex items-center mt-2 space-x-2">
                         {genreNames.map((genre: string) => (
-                            <span key={genre} className="text-xs text-gray-400 border border-gray-800/20 bg-orange-800/20 rounded-full px-3 py-1">
+                            <span key={genre} className="text-xs text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600 bg-orange-100 dark:bg-orange-900/30 rounded-full px-3 py-1">
                                 {genre}
                             </span>
                         ))}

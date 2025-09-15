@@ -166,7 +166,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         if (!isSpotlight) {
             const handleClickOutside = (event: MouseEvent) => {
                 console.log("handleClickOutside", event);
-                
+
                 if (
                     searchRef.current &&
                     !searchRef.current.contains(event.target as Node) &&
@@ -237,7 +237,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
         if (isSearching) {
             return (
-                <div className="p-8 text-center text-gray-200">
+                <div className="p-8 text-center text-gray-600 dark:text-gray-300">
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500 mx-auto mb-4"></div>
                     <p className="text-lg">Searching...</p>
                 </div>
@@ -246,12 +246,12 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
         if (error) {
             return (
-                <div className="p-8 text-center text-red-400">
-                    <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-                        <X className="w-8 h-8 text-red-500" />
+                <div className="p-8 text-center text-red-600 dark:text-red-400">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center">
+                        <X className="w-8 h-8 text-red-500 dark:text-red-400" />
                     </div>
                     <p className="text-lg font-medium mb-2">Search Error</p>
-                    <p className="text-sm">{error}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">{error}</p>
                 </div>
             );
         }
@@ -259,11 +259,11 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         if (searchResults.length > 0) {
             return (
                 <div className="py-2">
-                    <div className="px-6 py-4 border-b border-gray-800">
-                        <h3 className="text-xl font-semibold text-white">
+                    <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+                        <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
                             Search Results for "{searchTerm}"
                         </h3>
-                        <p className="text-gray-400 text-sm mt-1">
+                        <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">
                             {searchResults.length} {searchResults.length === 1 ? 'result' : 'results'} found
                         </p>
                     </div>
@@ -280,7 +280,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                     ))}
 
                     {searchResults.length > 10 && (
-                        <div className="px-6 py-4 text-center text-gray-500 text-sm border-t border-gray-800">
+                        <div className="px-6 py-4 text-center text-gray-500 dark:text-gray-400 text-sm border-t border-gray-200 dark:border-gray-700">
                             Showing first 10 of {searchResults.length} results
                         </div>
                     )}
@@ -289,13 +289,13 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         }
 
         return (
-            <div className="p-8 text-center text-gray-500">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gray-800 rounded-full flex items-center justify-center">
-                    <Search className="w-8 h-8 text-gray-400" />
+            <div className="p-8 text-center text-gray-500 dark:text-gray-400">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <Search className="w-8 h-8 text-gray-400 dark:text-gray-500" />
                 </div>
-                <p className="text-lg font-medium mb-2">No results found</p>
-                <p className="text-sm">No movies found for &quot;{searchTerm}&quot;</p>
-                <p className="text-sm mt-1">Try different keywords</p>
+                <p className="text-lg font-medium mb-2 text-gray-700 dark:text-gray-300">No results found</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">No movies found for &quot;{searchTerm}&quot;</p>
+                <p className="text-sm mt-1 text-gray-500 dark:text-gray-500">Try different keywords</p>
             </div>
         );
     };

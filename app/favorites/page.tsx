@@ -54,15 +54,15 @@ const FavoritesPage = () => {
   if (movies.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
-        <h1 className="text-xl font-bold text-gray-800">No Favorites Yet</h1>
-        <p className="text-gray-400 mt-2">Like some movies to see them here!</p>
+        <h1 className="text-xl font-bold text-gray-800 dark:text-white">No Favorites Yet</h1>
+        <p className="text-gray-400 mt-2 dark:text-gray-300">Like some movies to see them here!</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6">
-      <h1 className="text-2xl font-bold mb-6 text-black">Movie you Liked</h1>
+    <div className="max-w-7xl mx-auto px-6 mb-24 ">
+      <h1 className="text-2xl font-bold mb-6 text-black dark:text-white">Movie you Liked</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
         {movies.map((movie) => (
           <div
@@ -77,7 +77,7 @@ const FavoritesPage = () => {
               height={450}
               className="rounded-lg object-cover transition-transform transform group-hover:scale-105"
             />
-            <h3 className="text-sm mt-2 font-semibold text-gray-800 truncate">
+            <h3 className="text-sm mt-2 font-semibold text-gray-800 dark:text-white truncate">
               {movie.title}
             </h3>
           </div>

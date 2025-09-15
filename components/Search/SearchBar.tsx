@@ -33,7 +33,7 @@ const SearchBar = ({ onSearchClick,
                         onChange={handleSearchChange}
                         onClick={handleInputClick}
                         placeholder="Search movies..."
-                        className="w-full pl-10 pr-10 py-2 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 cursor-pointer"
+                        className="w-full pl-10 pr-10 py-2 dark:bg-gray-900 bg-white border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all duration-200 cursor-pointer"
                         readOnly={!!onSearchClick}
                     />
                     {searchTerm && !onSearchClick && (

@@ -4,6 +4,7 @@ import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
 import Providers from "@/components/Providers";
 import GlobalLayout from "@/components/GlobalLayout";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",

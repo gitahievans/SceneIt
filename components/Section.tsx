@@ -37,7 +37,7 @@ const Section = memo(({ title, movies, isLoading = false, showViewAll = false, o
   return (
     <section className="my-8">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">{title}</h2>
+        <h2 className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">{title}</h2>
         {showViewAll && movies.length > 0 && (
           <button
             onClick={onViewAll}
@@ -48,7 +48,7 @@ const Section = memo(({ title, movies, isLoading = false, showViewAll = false, o
           </button>
         )}
         {!isLoading && movies.length > 0 && (
-          <span className="text-sm text-gray-500">
+          <span className="hidden md:block text-sm text-gray-500 dark:text-gray-400">
             {movies.length} {movies.length === 1 ? 'movie' : 'movies'}
           </span>
         )}

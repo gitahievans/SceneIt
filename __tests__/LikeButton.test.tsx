@@ -13,20 +13,6 @@ describe("LikeButton", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         global.fetch = mockFetch;
-
-        mockFetch.mockImplementation((url) => {
-            if (url.includes('/api/interactions/check')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: async () => ({ exists: false })
-                })
-            }
-
-            return Promise.resolve({
-                ok: true,
-                json: async () => ({})
-            });
-        });
     });
 
     afterEach(() => {
@@ -34,29 +20,37 @@ describe("LikeButton", () => {
     });
 
     it("renders with initial state", async () => {
+        // Mock the initial check call
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ exists: false })
+        });
+
         render(<LikeButton movieId={1234} />);
+        
         await waitFor(() => {
             expect(screen.getByText("Add to Favorites")).toBeInTheDocument();
         });
-    })
+    });
 
     it("favorites a movie when clicked", async () => {
-        mockFetch
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({ exists: false })
-            })
-            // Mock the favorite action (successful)
-            .mockResolvedValueOnce({
-                ok: true,
-                json: async () => ({})
-            });
+        // Mock the initial status check (not liked)
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ exists: false })
+        });
 
         render(<LikeButton movieId={1234} />);
 
         // Wait for initial render to complete
         await waitFor(() => {
             expect(screen.getByText("Add to Favorites")).toBeInTheDocument();
+        });
+
+        // Now mock the favorite action for the click
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({})
         });
 
         // Click the button
@@ -81,21 +75,13 @@ describe("LikeButton", () => {
                 action: 'favorited'
             })
         });
-    })
-
+    });
 
     it("unfavorites a movie when already liked", async () => {
-        mockFetch.mockImplementation((url) => {
-            if (url.includes('/api/interactions/check')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: async () => ({ exists: true })
-                });
-            }
-            return Promise.resolve({
-                ok: true,
-                json: async () => ({})
-            });
+        // Mock the initial status check (already liked)
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({ exists: true })
         });
 
         render(<LikeButton movieId={1234} />);
@@ -104,7 +90,13 @@ describe("LikeButton", () => {
             expect(screen.getByText("Added to Favorites")).toBeInTheDocument();
         });
 
-        // unfavorite when cliked
+        // Now mock the unfavorite action for the click
+        mockFetch.mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({})
+        });
+
+        // unfavorite when clicked
         fireEvent.click(screen.getByText("Added to Favorites"));
 
         // show processing
@@ -124,6 +116,4 @@ describe("LikeButton", () => {
             })
         });
     });
-
-
-})
+});

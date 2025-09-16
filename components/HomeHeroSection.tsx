@@ -10,6 +10,7 @@ import { toggleLike, checkLikedStatus } from "./LikeButton";
 import { useRouter } from "next/navigation";
 import { Check, Plus, TicketCheck } from "lucide-react";
 import Loading from "./Loader";
+import Image from "next/image";
 
 function DiscoverHero() {
     const { user } = useAuth();
@@ -86,9 +87,10 @@ function DiscoverHero() {
                                 style={{ border: 'none' }}
                             />
                         ) : (
-                            <img
+                            <Image
                                 src={`https://image.tmdb.org/t/p/original${mainMovie.backdrop_path}`}
                                 alt={mainMovie.title}
+                                fill
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
                         )}
@@ -153,9 +155,10 @@ function DiscoverHero() {
                                 animation: 'fadeInUp 0.6s ease-out forwards'
                             }}
                         >
-                            <img
+                            <Image
                                 src={`https://image.tmdb.org/t/p/w780${movie?.backdrop_path || movie?.poster_path}`}
                                 alt={movie?.title}
+                                fill
                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
 

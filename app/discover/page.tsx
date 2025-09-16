@@ -53,9 +53,13 @@ const DiscoverPage = () => {
       if (user) {
         const interests = await getUserInterests(user.id);
         const likes = await getUserLikes(user.id);
+
         const genreResults = await Promise.all(
           interests.map(async (genreId) => {
-            const [res, genreName] = await Promise.all([getMoviesByGenre(genreId), getGenreNameFromId(genreId)]);
+            const [res, genreName] = await Promise.all([
+              getMoviesByGenre(genreId),
+              getGenreNameFromId(genreId)
+            ]);
             return { genreId, genreName: genreName || "", movies: res.results || [] };
           })
         );
@@ -73,7 +77,6 @@ const DiscoverPage = () => {
         );
         setRecommendations(recResults);
       }
-
       setLoading(false);
     };
 

@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Mock the components and services
 jest.mock('@/components/Section', () => {
-    return function Section({ title, movies }: { title: string; movies: any[] }) {
+    return function Section({ title, movies }: { title: string; movies: MovieItem[] }) {
         return (
             <div data-testid={`section-${title}`}>
                 <h3>{title}</h3>
@@ -37,6 +37,7 @@ jest.mock('@/app/services/queryClient');
 
 import HomePageContent from '@/components/HomeComponent';
 import { QueryService } from '@/app/services/queryClient';
+import { MovieItem } from '@/types/types';
 
 // scroll behavior
 Object.defineProperty(window, 'scrollTo', {

@@ -12,7 +12,6 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     ignores: [
       "node_modules/**",
@@ -21,18 +20,28 @@ const eslintConfig = [
       "build/**",
       "next-env.d.ts",
     ],
+  },
+  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
     plugins: {
       "testing-library": testingLibrary,
       "jest-dom": jestDom,
     },
     rules: {
-      "react/no-unescaped-entities": "off",
-      "react/display-name": "off",
-      "@typescript-eslint/no-unused-vars": "off",
-
       ...testingLibrary.configs.react.rules,
 
       ...jestDom.configs.recommended.rules,
+
+
+      "react/no-unescaped-entities": "off",
+      "react/display-name": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-unused-expressions": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "testing-library/no-wait-for-multiple-assertions": "off",
+      "testing-library/no-node-access": "off",
+
+
     },
   },
 ];

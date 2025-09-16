@@ -9,10 +9,8 @@ export default function EmailConfirmationModal() {
   const searchParams = useSearchParams();
 
   useEffect(() => {
-    // Check if user came from signup
     if (searchParams.get('signup') === 'pending') {
       setIsOpen(true);
-      // Clean up the URL by removing the query parameter
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
     }
@@ -22,23 +20,12 @@ export default function EmailConfirmationModal() {
     setIsOpen(false);
   };
 
-  const resendEmail = async () => {
-    // Add your resend email logic here if needed
-    // For example, call your resend API endpoint
-    try {
-      // await fetch('/api/auth/resend-confirmation', { method: 'POST' });
-      alert('Confirmation email sent! Please check your inbox.');
-    } catch (error) {
-      alert('Failed to resend email. Please try again.');
-    }
-  };
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 relative">
-        {/* Close button */}
         <button
           onClick={closeModal}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
@@ -48,7 +35,6 @@ export default function EmailConfirmationModal() {
           </svg>
         </button>
 
-        {/* Email icon */}
         <div className="flex justify-center mb-4">
           <div className="bg-blue-100 p-3 rounded-full">
             <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -57,7 +43,6 @@ export default function EmailConfirmationModal() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="text-center">
           <h3 className="text-xl font-semibold text-gray-900 mb-2">
             Check Your Email
@@ -66,14 +51,7 @@ export default function EmailConfirmationModal() {
             We've sent a confirmation link to your email address. Please click the link to verify your account and complete your registration.
           </p>
 
-          {/* Action buttons */}
           <div className="space-y-3">
-            <button
-              onClick={resendEmail}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
-            >
-              Resend Confirmation Email
-            </button>
             <button
               onClick={closeModal}
               className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 font-medium py-2 px-4 rounded-lg transition-colors"

@@ -39,9 +39,7 @@ const eslintConfig = [
       "@typescript-eslint/no-unused-expressions": "off",
       "@typescript-eslint/no-explicit-any": "off",
       "testing-library/no-wait-for-multiple-assertions": "off",
-      "testing-library/no-node-access": "off",
-
-
+      "testing-library/no-node-access": "off"
     },
   },
 ];

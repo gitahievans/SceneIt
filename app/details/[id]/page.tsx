@@ -20,7 +20,6 @@ const formatRuntime = (minutes: number) => {
     return hours > 0 ? `${hours}h ${remainingMinutes}m` : `${remainingMinutes}m`;
 };
 
-
 const getRatingColor = (rating: number) => {
     if (rating >= 8) return 'text-green-500';
     if (rating >= 6) return 'text-yellow-500';

@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useMemo, useEffect, Suspense } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query';
 import Section from '@/components/Section';
 import { MovieResponse, Genre, GenreResponse } from '@/types/types';

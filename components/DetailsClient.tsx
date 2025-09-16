@@ -5,8 +5,8 @@ import { useAuth } from "./Providers";
 
 export default function DetailsClient({ movieId }: { movieId: number }) {
   const { user } = useAuth();
-  console.log("user in details client", user);
-  console.log("movieId in details client", movieId);
+  // console.log("user in details client", user);
+  // console.log("movieId in details client", movieId);
 
   useEffect(() => {
     if (user) {

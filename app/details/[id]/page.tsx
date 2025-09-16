@@ -4,6 +4,9 @@ import { QueryService } from '@/app/services/queryClient';
 import { Company, Genre } from '@/types/types';
 import LikeButton from '@/components/LikeButton';
 import DetailsClient from '@/components/DetailsClient';
+import { Play } from 'lucide-react';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -26,9 +29,14 @@ const getRatingColor = (rating: number) => {
     return 'text-red-500';
 };
 
+
+
 const DetailsPage = async ({ params }: { params: { id: number } }) => {
-    const { getMovieDetails, getPoster } = QueryService;
-    const movie = await getMovieDetails(params?.id);
+    const {id} = params;
+    const { getMovieDetails, getPoster, getMovieVideos } = QueryService;
+    const movie = await getMovieDetails(id);
+
+
 
     return (
         <div className='min-h-screen bg-gray-900'>
@@ -109,6 +117,9 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
                                     <div className='transform hover:scale-105 transition-transform duration-200'>
                                         <LikeButton movieId={params?.id} />
                                     </div>
+                                    <Link href={`/watch/${params?.id}`} className='transform hover:scale-105 transition-transform duration-200'>
+                                        Watch Now
+                                    </Link>
                                 </div>
 
                             </div>

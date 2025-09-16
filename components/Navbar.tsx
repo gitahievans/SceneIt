@@ -24,8 +24,8 @@ export default function Navbar() {
   const { theme } = useTheme();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  console.log("theme", theme);
-  console.log("nav user", user);
+  // console.log("theme", theme);
+  // console.log("nav user", user);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {

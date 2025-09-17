@@ -10,6 +10,7 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "next-themes";
 
 const navLinks = [
+  {href:  "/profile", label: "Profile", icon: "👤"},
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/discover", label: "Discover", icon: "🔍" },
   { href: "/favorites", label: "Favorites", icon: "❤️" },

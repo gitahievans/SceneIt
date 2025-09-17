@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "./Providers";
 import { User } from "@supabase/supabase-js";
+import { Heart } from "lucide-react";
 
 export const toggleLike = async (user: User | null, movieId: number | undefined, liked: boolean, setLiked: (liked: boolean) => void, setLoading: (loading: boolean) => void) => {
   if (!user) return alert("Log in to like this movie");
@@ -63,35 +64,23 @@ export default function LikeButton({ movieId }: { movieId: number | undefined })
       disabled={loading}
       className={`
         group relative flex items-center gap-3 
-        px-6 py-3 md:px-8 md:py-4 lg:px-10 lg:py-5
-        rounded-2xl font-semibold text-base md:text-lg lg:text-xl
+         p-4 
+        rounded-2xl font-semibold
         transition-all duration-300 ease-out
         transform hover:scale-[1.02] active:scale-[0.98]
         shadow-xl hover:shadow-2xl
-        border-2 backdrop-blur-sm
+        border backdrop-blur-sm
         disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none
         ${loading
           ? 'bg-white/10 border-white/20 text-gray-300'
           : liked
-            ? 'bg-gradient-to-r from-red-500 to-pink-500 border-red-400 text-white shadow-red-500/25 hover:from-red-600 hover:to-pink-600'
+            ? 'bg-gradient-to-r from-red-700 to-pink-700 border-red-400 text-white shadow-red-500/25 hover:from-red-600 hover:to-pink-600'
             : 'bg-white/10 border-white/30 text-white hover:bg-white/20 hover:border-white/50 hover:shadow-white/10'
         }
       `}
     >
       <div className="relative">
-        <svg
-          className={`w-5 h-5 md:w-6 md:h-6 lg:w-7 lg:h-7 transition-all duration-500 ${loading
-            ? 'fill-none animate-pulse'
-            : liked
-              ? 'fill-current animate-pulse'
-              : 'fill-none group-hover:fill-current'
-            }`}
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-        </svg>
+       <Heart />
 
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center">
@@ -114,9 +103,9 @@ export default function LikeButton({ movieId }: { movieId: number | undefined })
           }`}></div>
       </div>
 
-      {liked && !loading && (
+      {/* {liked && !loading && (
         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-red-400/30 to-pink-400/30 animate-ping"></div>
-      )}
+      )} */}
     </button>
   );
 }

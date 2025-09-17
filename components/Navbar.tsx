@@ -10,10 +10,15 @@ import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "next-themes";
 
 const navLinks = [
-  {href:  "/profile", label: "Profile", icon: "👤"},
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/discover", label: "Discover", icon: "🔍" },
-  { href: "/favorites", label: "Favorites", icon: "❤️" },
+  { href: "/favorites", label: "My Favorites", icon: "❤️" },
+];
+const mobileNavLinks = [
+  {href:  "/profile", label: "My Profile", icon: "👤"},
+  { href: "/", label: "Home", icon: "🏠" },
+  { href: "/discover", label: "Discover", icon: "🔍" },
+  { href: "/favorites", label: "My Favorites", icon: "❤️" },
 ];
 
 export default function Navbar() {
@@ -245,7 +250,7 @@ export default function Navbar() {
               </button>
               {user ? (
                 <>
-                  {navLinks.map((link) => (
+                  {mobileNavLinks.map((link) => (
                     <Link
                       key={link.href}
                       href={link.href}

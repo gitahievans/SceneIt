@@ -28,7 +28,7 @@ const VideoPlayList = ({ videos,
         handleVideoSelect: (index: number) => void
     }) => {
     return (
-        <div className="lg:col-span-1">
+        <div className="">
             <div className="bg-gray-800 rounded-lg p-4">
                 <div className="relative mb-4">
                     <button

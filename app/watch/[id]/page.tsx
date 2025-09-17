@@ -49,7 +49,7 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
             }, 500);
             return () => clearTimeout(timer);
         }
-    }, [currentVideo?.key]);
+    }, [currentVideo?.key, currentVideo, filteredVideos.length]);
 
     useEffect(() => {
         if (currentVideo?.key) {
@@ -163,8 +163,8 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
     }
 
     return (
-        <div className="bg-gray-900 text-white max-w-7xl min-h-screen mx-auto flex flex-col gap-4 px-2">
-            <div className="relative w-full flex flex-row items-start gap-4 justify-between">
+        <div className="bg-gray-900 text-white max-w-7xl w-full min-h-screen mx-auto flex flex-col gap-4">
+            <div className="flex flex-row items-start gap-4 justify-between">
                 <PlayerComponent
                     currentVideo={currentVideo}
                     playing={playing}
@@ -194,7 +194,7 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
                     handleVideoSelect={handleVideoSelect}
                     playerRef={playerRef}
                 />
-                <div className='hidden lg:block'>
+                <div className='hidden lg:block lg:w-1/2'>
                     <VideoPlayList
                         videos={videos?.results || []}
                         selectedVideo={selectedVideo}

@@ -5,9 +5,11 @@ import { useAuth } from "./Providers";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import SearchComponent from "./SearchComponent";
-import { ArrowDownIcon, ChevronDownIcon, LogOut, Search, User } from "lucide-react";
+import { ChevronDownIcon, LogOut, Search, User } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useTheme } from "next-themes";
+import Logo from "../public/assets/icon.png";
+import Image from "next/image";
 
 const navLinks = [
   { href: "/", label: "Home", icon: "🏠" },
@@ -15,7 +17,7 @@ const navLinks = [
   { href: "/favorites", label: "My Favorites", icon: "❤️" },
 ];
 const mobileNavLinks = [
-  {href:  "/profile", label: "My Profile", icon: "👤"},
+  { href: "/profile", label: "My Profile", icon: "👤" },
   { href: "/", label: "Home", icon: "🏠" },
   { href: "/discover", label: "Discover", icon: "🔍" },
   { href: "/favorites", label: "My Favorites", icon: "❤️" },
@@ -35,7 +37,10 @@ export default function Navbar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setUserDropdownOpen(false);
       }
     }
@@ -69,7 +74,13 @@ export default function Navbar() {
               href="/"
               className="flex items-center gap-2 text-xl font-bold text-black hover:text-gray-600 transition-colors duration-200 dark:text-white dark:hover:text-gray-400"
             >
-              <span className="text-2xl">🎬</span>
+              <Image
+                src={Logo}
+                alt="SceneIt Logo"
+                width={24}
+                height={24}
+                priority
+              />
               <span className="bg-gradient-to-r from-gray-900 via-purple-600 to-gray-900 bg-clip-text text-transparent dark:bg-gradient-to-r dark:from-gray-50 dark:via-purple-400 dark:to-gray-50">
                 SceneIt
               </span>
@@ -82,8 +93,18 @@ export default function Navbar() {
                   className="p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
                   aria-label="Search"
                 >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
                   </svg>
                 </button>
 
@@ -91,10 +112,11 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-400 ${path === link.href
-                      ? "border-b-2 border-orange-600 text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      : "border-b-2 border-transparent text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-                      }`}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-400 ${
+                      path === link.href
+                        ? "border-b-2 border-orange-600 text-orange-600 dark:text-orange-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                        : "border-b-2 border-transparent text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                    }`}
                   >
                     {link.label}
                   </Link>
@@ -107,11 +129,12 @@ export default function Navbar() {
                   >
                     <div className="w-2 h-2 bg-green-400 rounded-full"></div>
                     <span className="text-sm text-gray-800 dark:text-gray-200">
-                      {user?.email?.split('@')[0]}
+                      {user?.email?.split("@")[0]}
                     </span>
                     <ChevronDownIcon
-                      className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180' : ''
-                        }`}
+                      className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform duration-200 ${
+                        userDropdownOpen ? "rotate-180" : ""
+                      }`}
                     />
                   </button>
 
@@ -126,7 +149,7 @@ export default function Navbar() {
                           </div>
                           <div>
                             <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                              {user?.email?.split('@')[0]}
+                              {user?.email?.split("@")[0]}
                             </div>
                             <div className="text-xs text-gray-500 dark:text-gray-400">
                               {user?.email}
@@ -160,7 +183,9 @@ export default function Navbar() {
 
                       <div className="border-t border-gray-200 dark:border-gray-700 py-1">
                         <div className="flex items-center justify-between px-4 py-2">
-                          <span className="text-sm text-gray-700 dark:text-gray-300">{theme === "dark" ? "Dark" : "Light"}</span>
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {theme === "dark" ? "Dark" : "Light"}
+                          </span>
                           <ThemeToggle />
                         </div>
                       </div>
@@ -211,11 +236,26 @@ export default function Navbar() {
                 className="md:hidden p-2 text-gray-700 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
                 aria-label="Toggle menu"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
                   {mobileMenuOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M6 18L18 6M6 6l12 12"
+                    />
                   ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M4 6h16M4 12h16M4 18h16"
+                    />
                   )}
                 </svg>
               </button>
@@ -224,11 +264,22 @@ export default function Navbar() {
             {loading && (
               <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 backdrop-blur-sm rounded-lg border border-gray-200 dark:border-gray-700">
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  <div
+                    className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "0ms" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "150ms" }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
+                    style={{ animationDelay: "300ms" }}
+                  ></div>
                 </div>
-                <span className="text-sm text-gray-700 dark:text-gray-300">Loading...</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">
+                  Loading...
+                </span>
               </div>
             )}
           </div>
@@ -239,7 +290,10 @@ export default function Navbar() {
             <div className="px-4 py-3 space-y-3">
               <div className="flex items-center justify-between">
                 <ThemeToggle />
-                <p className="text-sm text-gray-700 dark:text-gray-300 capitalize"> {theme}</p>
+                <p className="text-sm text-gray-700 dark:text-gray-300 capitalize">
+                  {" "}
+                  {theme}
+                </p>
               </div>
               <button
                 onClick={handleSearchButtonClick}
@@ -254,10 +308,11 @@ export default function Navbar() {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${path === link.href
-                        ? "bg-gray-200 dark:bg-gray-700 text-orange-600 dark:text-orange-400"
-                        : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
-                        }`}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        path === link.href
+                          ? "bg-gray-200 dark:bg-gray-700 text-orange-600 dark:text-orange-400"
+                          : "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                      }`}
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <span className="text-lg">{link.icon}</span>
@@ -273,9 +328,11 @@ export default function Navbar() {
                     </div>
                     <div>
                       <div className="text-sm text-gray-800 dark:text-gray-200 font-medium">
-                        {user?.email?.split('@')[0]}
+                        {user?.email?.split("@")[0]}
                       </div>
-                      <div className="text-xs text-gray-600 dark:text-gray-400">Online</div>
+                      <div className="text-xs text-gray-600 dark:text-gray-400">
+                        Online
+                      </div>
                     </div>
                   </div>
 

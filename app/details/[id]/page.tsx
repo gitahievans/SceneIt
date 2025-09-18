@@ -1,5 +1,5 @@
 import Image from 'next/image'
-import React from 'react'
+import React, { use } from 'react'
 import { QueryService } from '@/app/services/queryClient';
 import { Company, Genre } from '@/types/types';
 import LikeButton from '@/components/LikeButton';
@@ -29,14 +29,14 @@ const getRatingColor = (rating: number) => {
 
 
 
-const DetailsPage = async ({ params }: { params: { id: number } }) => {
-    const { id } = params;
+const DetailsPage = async ({ params }: { params: Promise<{ id: number }> }) => {
+    const { id } = await use(params);
     const { getMovieDetails, getPoster } = QueryService;
     const movie = await getMovieDetails(id);
 
     return (
         <div className='min-h-screen bg-gray-900'>
-            <DetailsClient movieId={params?.id} />
+            <DetailsClient movieId={id} />
             <div className='relative lg:h-screen'>
                 <div className='absolute inset-0'>
                     <Image
@@ -111,10 +111,10 @@ const DetailsPage = async ({ params }: { params: { id: number } }) => {
 
                                 <div className='flex items-center gap-4 pt-4'>
                                     <div className='transform hover:scale-105 transition-transform duration-200'>
-                                        <LikeButton movieId={params?.id} />
+                                        <LikeButton movieId={id} />
                                     </div>
 
-                                    <WatchButton movieId={params?.id} />
+                                    <WatchButton movieId={id} />
 
                                 </div>
 

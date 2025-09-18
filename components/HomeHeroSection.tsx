@@ -11,6 +11,8 @@ import { useRouter } from "next/navigation";
 import { Check, Plus, TicketCheck } from "lucide-react";
 import Loading from "./Loader";
 import Image from "next/image";
+import LoginModal from "./LoginModal";
+import { useDisclosure } from "@mantine/hooks";
 
 function DiscoverHero() {
     const { user } = useAuth();
@@ -22,10 +24,11 @@ function DiscoverHero() {
         queryFn: () => (user ? getUserInterests(user.id) : []),
         enabled: !!user,
     });
+    const [opened, { open, close }] = useDisclosure();
+    const [action, setAction] = useState<string | null>(null);
     const router = useRouter();
 
     // console.log("userInterests", userInterests);
-
     const { data: movies } = useQuery({
         queryKey: ["discover-movies", userInterests],
         queryFn: async () => {
@@ -52,6 +55,26 @@ function DiscoverHero() {
 
     console.log("mainMovie", mainMovie);
 
+    const handleWatchClick = () => {
+        if (!user) {
+            setAction("watch");
+            open();
+            return;
+        } else {
+            router.push(`/watch/${mainMovie?.id}`);
+        }
+    }
+
+    const handleLikeClick = () => {
+        if (!user) {
+            setAction("add to favorites");
+            open();
+            return;
+        } else {
+            toggleLike(user!, mainMovie?.id, liked, setLiked, setLoading);
+        }
+    }
+
     const { data: videos } = useQuery({
         queryKey: ["movie-videos", mainMovie?.id],
         queryFn: () => getMovieVideos(mainMovie?.id as number),
@@ -75,6 +98,7 @@ function DiscoverHero() {
 
     return (
         <div className="mx-4">
+            <LoginModal action={action || ""} opened={opened} close={close} />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 h-[70vh] max-w-7xl mx-auto">
                 <div className="col-span-1 md:col-span-2 relative rounded-2xl md:rounded-3xl overflow-hidden bg-gradient-to-br from-gray-900 to-black shadow-2xl group">
                     <div className="absolute inset-0">
@@ -120,7 +144,7 @@ function DiscoverHero() {
                         </p>
 
                         <div className="flex flex-row gap-3 md:gap-4">
-                            <button onClick={() => router.push(`/watch/${mainMovie.id}`)} className="group/btn relative w-1/2 md:w-auto py-2 md:px-8 md:py-4 bg-transparent border border-white/20 md:bg-gradient-to-r from-gray-600 to-black rounded-xl md:rounded-2xl font-semibold text-white shadow-lg md:hover:shadow-orange-500/25 md:hover:shadow-xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
+                            <button onClick={handleWatchClick} className="group/btn relative w-1/2 md:w-auto py-2 md:px-8 md:py-4 bg-transparent border border-white/20 md:bg-gradient-to-r from-gray-600 to-black rounded-xl md:rounded-2xl font-semibold text-white shadow-lg md:hover:shadow-orange-500/25 md:hover:shadow-xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>
                                 <div className="relative flex items-center justify-center space-x-2">
                                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -131,7 +155,7 @@ function DiscoverHero() {
                             </button>
 
                             <button
-                                onClick={() => toggleLike(user!, mainMovie.id, liked, setLiked, setLoading)}
+                                onClick={handleLikeClick}
                                 className="w-1/2 md:w-auto px-8 py-2 md:py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl md:rounded-2xl font-semibold text-white hover:bg-white/20 hover:border-white/30 transition-all duration-300 transform hover:scale-105">
                                 <div className="flex items-center justify-center space-x-2">
                                     {liked ? <Check /> : <Plus />}

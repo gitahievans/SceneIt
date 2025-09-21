@@ -100,7 +100,7 @@ const HomePageContent = () => {
                 />
 
                 <div id="genres-section" className="mt-8">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex flex-col md:flex-row items-center justify-between mb-6">
                         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Browse by Genre</h2>
                         <div className="text-sm text-gray-600 dark:text-gray-400">
                             Page {currentPage} of {totalPages} • {genresList.length} genres total

@@ -62,106 +62,129 @@ const PlayerComponent = ({
     handleVideoSelect,
     playerRef
 }: PlayerComponentProps) => {
-    return (
-            <div
-                className="player-wrapper relative min-h-full h-full w-full aspect-video"
-                onMouseMove={handleMouseMove}
-                onMouseLeave={() => playing && setShowControls(false)}
-            >
-                <ReactPlayer
-                    ref={(player) => { playerRef.current = player; }}
-                    src={currentVideo?.key ? `https://www.youtube.com/watch?v=${currentVideo.key}` : ''}
-                    width="100%"
-                    height="100%"
-                    playing={playing}
-                    volume={volume}
-                    muted={muted}
-                    onProgress={(state) => handleProgress(state as any)}
-                    // onDuration={handleDuration}
-                    onEnded={() => setPlaying(false)}
-                    onReady={() => console.log('Player ready')}
-                    onError={(error) => console.error('Player error:', error)}
-                    config={{
-                        youtube: {
-                            // showinfo: 0,
-                            // controls: 0,
-                            // modestbranding: 1,
-                            rel: 0
-                        }
-                    }}
-                />
+    const handleUnmute = () => {
+        setMuted(false);
+        if (volume === 0) {
+            setVolume(0.5); // Set to 50% volume if it was 0
+        }
+    };
 
-                <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                        <button
-                            onClick={handlePlayPause}
-                            className="bg-black/50 hover:bg-black/70 rounded-full p-4 transition-all duration-200 transform hover:scale-110"
-                        >
-                            {playing ? (
-                                <Pause className="w-8 h-8 text-white" />
-                            ) : (
-                                <Play className="w-8 h-8 text-white ml-1" />
-                            )}
-                        </button>
+    return (
+        <div
+            className="player-wrapper relative min-h-full h-full w-full aspect-video"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => playing && setShowControls(false)}
+        >
+            <ReactPlayer
+                ref={(player) => { playerRef.current = player; }}
+                src={currentVideo?.key ? `https://www.youtube.com/watch?v=${currentVideo.key}` : ''}
+                width="100%"
+                height="100%"
+                playing={playing}
+                volume={volume}
+                muted={muted}
+                onProgress={(state) => {
+                    if (!seeking) {
+                        handleProgress(state as any);
+                    }
+                }}
+                // onDuration={handleDuration}
+                onEnded={() => setPlaying(false)}
+                onReady={() => console.log('Player ready')}
+                onError={(error) => console.error('Player error:', error)}
+                config={{
+                    youtube: {
+                        rel: 0
+                    }
+                }}
+            />
+
+            {/* Tap to Unmute Button - Shows when video is muted and playing */}
+            {muted && playing && (
+                <div className="absolute top-4 right-4 z-10">
+                    <button
+                        onClick={handleUnmute}
+                        className="bg-black/80 hover:bg-black/90 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg border border-white/20"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <VolumeX className="w-4 h-4" />
+                            <span>Tap to Unmute</span>
+                        </div>
+                    </button>
+                </div>
+            )}
+
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+                <div className="absolute inset-0 flex items-center justify-center">
+                    <button
+                        onClick={handlePlayPause}
+                        className="bg-black/50 hover:bg-black/70 rounded-full p-4 transition-all duration-200 transform hover:scale-110"
+                    >
+                        {playing ? (
+                            <Pause className="w-8 h-8 text-white" />
+                        ) : (
+                            <Play className="w-8 h-8 text-white ml-1" />
+                        )}
+                    </button>
+                </div>
+
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="mb-4">
+                        <input
+                            type="range"
+                            min={0}
+                            max={1}
+                            step="any"
+                            value={played}
+                            onChange={handleSeekChange}
+                            onMouseDown={handleSeekMouseDown}
+                            // onMouseUp={handleSeekMouseUp}
+                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                        />
                     </div>
 
-                    <div className="absolute bottom-0 left-0 right-0 p-4">
-                        <div className="mb-4">
-                            <input
-                                type="range"
-                                min={0}
-                                max={1}
-                                step="any"
-                                value={played}
-                                onChange={handleSeekChange}
-                                onMouseDown={handleSeekMouseDown}
-                                // onMouseUp={handleSeekMouseUp}
-                                className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                            />
-                        </div>
-
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                                <button
-                                    onClick={handlePlayPause}
-                                    className="hover:text-blue-400 transition-colors"
-                                >
-                                    {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                                </button>
-
-                                <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={() => setMuted(!muted)}
-                                        className="hover:text-blue-400 transition-colors"
-                                    >
-                                        {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
-                                    </button>
-                                    <input
-                                        type="range"
-                                        min={0}
-                                        max={1}
-                                        step="any"
-                                        value={muted ? 0 : volume}
-                                        onChange={handleVolumeChange}
-                                        className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
-                                    />
-                                </div>
-
-                                <span className="text-sm text-gray-300">
-                                    {formatTime(duration * played)} / {formatTime(duration)}
-                                </span>
-                            </div>
-
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
                             <button
-                                onClick={handleFullscreen}
+                                onClick={handlePlayPause}
                                 className="hover:text-blue-400 transition-colors"
                             >
-                                <Maximize className="w-5 h-5" />
+                                {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                             </button>
+
+                            <div className="flex items-center space-x-2">
+                                <button
+                                    onClick={() => setMuted(!muted)}
+                                    className="hover:text-blue-400 transition-colors"
+                                >
+                                    {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+                                </button>
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={1}
+                                    step="any"
+                                    value={muted ? 0 : volume}
+                                    onChange={handleVolumeChange}
+                                    className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                                />
+                            </div>
+
+                            <span className="text-sm text-gray-300">
+                                {formatTime(duration * played)} / {formatTime(duration)}
+                            </span>
                         </div>
+
+                        <button
+                            onClick={handleFullscreen}
+                            className="hover:text-blue-400 transition-colors"
+                        >
+                            <Maximize className="w-5 h-5" />
+                        </button>
                     </div>
                 </div>
             </div>
+        </div>
     )
 }
 

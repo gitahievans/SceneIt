@@ -65,7 +65,7 @@ const PlayerComponent = ({
     const handleUnmute = () => {
         setMuted(false);
         if (volume === 0) {
-            setVolume(0.5); // Set to 50% volume if it was 0
+            setVolume(0.5); 
         }
     };
 
@@ -99,12 +99,11 @@ const PlayerComponent = ({
                 }}
             />
 
-            {/* Tap to Unmute Button - Shows when video is muted and playing */}
             {muted && playing && (
                 <div className="absolute top-4 right-4 z-10">
                     <button
                         onClick={handleUnmute}
-                        className="bg-black/80 hover:bg-black/90 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-lg border border-white/20"
+                        className="bg-gradient-to-r from-purple-600/60 to-purple-700/60 hover:from-purple-700 hover:to-purple-800 text-white px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 transform hover:scale-105 shadow-xl border border-purple-400/30 backdrop-blur-sm"
                     >
                         <div className="flex items-center space-x-2">
                             <VolumeX className="w-4 h-4" />
@@ -114,11 +113,11 @@ const PlayerComponent = ({
                 </div>
             )}
 
-            <div className={`absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`absolute inset-0 bg-gradient-to-t from-black/70 via-purple-900/10 to-transparent transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}>
                 <div className="absolute inset-0 flex items-center justify-center">
                     <button
                         onClick={handlePlayPause}
-                        className="bg-black/50 hover:bg-black/70 rounded-full p-4 transition-all duration-200 transform hover:scale-110"
+                        className="bg-gradient-to-r from-purple-600/60 to-purple-700/60 hover:from-purple-600/80 hover:to-purple-700/80 backdrop-blur-md rounded-full p-4 transition-all duration-300 transform hover:scale-110 shadow-2xl border border-purple-400/20"
                     >
                         {playing ? (
                             <Pause className="w-8 h-8 text-white" />
@@ -139,7 +138,10 @@ const PlayerComponent = ({
                             onChange={handleSeekChange}
                             onMouseDown={handleSeekMouseDown}
                             // onMouseUp={handleSeekMouseUp}
-                            className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                            className="w-full h-1 bg-gray-700/60 rounded-lg appearance-none cursor-pointer slider progress-bar"
+                            style={{
+                                background: `linear-gradient(to right, #a855f7 0%, #8b5cf6 ${played * 100}%, rgba(75, 85, 99, 0.6) ${played * 100}%, rgba(75, 85, 99, 0.6) 100%)`
+                            }}
                         />
                     </div>
 
@@ -147,7 +149,7 @@ const PlayerComponent = ({
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={handlePlayPause}
-                                className="hover:text-blue-400 transition-colors"
+                                className="hover:text-purple-600 transition-colors"
                             >
                                 {playing ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                             </button>
@@ -155,7 +157,7 @@ const PlayerComponent = ({
                             <div className="flex items-center space-x-2">
                                 <button
                                     onClick={() => setMuted(!muted)}
-                                    className="hover:text-blue-400 transition-colors"
+                                    className="hover:text-purple-600 transition-colors"
                                 >
                                     {muted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
                                 </button>
@@ -166,7 +168,10 @@ const PlayerComponent = ({
                                     step="any"
                                     value={muted ? 0 : volume}
                                     onChange={handleVolumeChange}
-                                    className="w-20 h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer slider"
+                                    className="w-20 h-1 bg-gray-700/60 rounded-lg appearance-none cursor-pointer slider volume-slider"
+                                    style={{
+                                        background: `linear-gradient(to right, #a855f7 0%, #8b5cf6 ${(muted ? 0 : volume) * 100}%, rgba(75, 85, 99, 0.6) ${(muted ? 0 : volume) * 100}%, rgba(75, 85, 99, 0.6) 100%)`
+                                    }}
                                 />
                             </div>
 
@@ -177,7 +182,7 @@ const PlayerComponent = ({
 
                         <button
                             onClick={handleFullscreen}
-                            className="hover:text-blue-400 transition-colors"
+                            className="hover:text-purple-400 transition-colors"
                         >
                             <Maximize className="w-5 h-5" />
                         </button>

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "./Providers";
 import { User } from "@supabase/supabase-js";
 import { Heart } from "lucide-react";
+import { useAuth } from "../Common/Providers";
 
 export const toggleLike = async (user: User | null, movieId: number | undefined, liked: boolean, setLiked: (liked: boolean) => void, setLoading: (loading: boolean) => void) => {
   if (!user) return alert("Log in to like this movie");

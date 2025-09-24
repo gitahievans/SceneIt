@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import Image from 'next/image'
 import React from 'react'
 import LikeButton from './LikeButton';
-import WatchButton from './WatchButton';
+import WatchButton from '../Player/WatchButton';
 
 const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {

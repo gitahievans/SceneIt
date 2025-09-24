@@ -1,6 +1,6 @@
 import React, { use } from 'react'
-import MovieViewTracker from '@/components/MovieViewTracker';
-import MovieDetailsClient from '@/components/MovieDetailsClient';
+import MovieDetailsClient from '@/components/DetailsPage/MovieDetailsClient';
+import MovieViewTracker from '@/components/DetailsPage/MovieViewTracker';
 
 
 

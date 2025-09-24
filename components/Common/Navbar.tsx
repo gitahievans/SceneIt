@@ -4,12 +4,12 @@ import Link from "next/link";
 import { useAuth } from "./Providers";
 import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
-import SearchComponent from "./SearchComponent";
 import { ChevronDownIcon, LogOut, Search, User } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
+import ThemeToggle from "../ThemeToggle";
 import { useTheme } from "next-themes";
-import Logo from "../public/assets/icon.png";
+import Logo from "../../public/assets/icon.png";
 import Image from "next/image";
+import SearchComponent from "../Search/SearchComponent";
 
 const navLinks = [
   { href: "/", label: "Home", icon: "🏠" },

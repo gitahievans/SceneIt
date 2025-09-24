@@ -4,8 +4,8 @@ import { Carousel } from "@mantine/carousel";
 import { ActionIcon } from "@mantine/core";
 import { DynamicIcon } from "lucide-react/dynamic";
 import { memo } from "react";
-import MovieCard from "./MovieCard";
 import { MovieItem } from "@/types/types";
+import MovieCard from "./MovieCard";
 
 type SectionProps = {
   title: string;

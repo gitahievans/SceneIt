@@ -5,10 +5,10 @@ import { createClient } from "@/utils/supabase/client";
 import { getUserInterests, getUserLikes } from "@/utils/supabase/queries";
 import { QueryService } from "@/app/services/queryClient";
 import { Genre, MovieItem } from "@/types/types";
-import Section from "@/components/Section";
-import Loading from "@/components/Loader";
+import Loading from "@/components/Common/Loader";
 import Link from "next/link";
 import { Edit } from "lucide-react";
+import Section from "@/components/Common/Section";
 
 const DiscoverPage = () => {
   const [trending, setTrending] = useState<MovieItem[]>([]);

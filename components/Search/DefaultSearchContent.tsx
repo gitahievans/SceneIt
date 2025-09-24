@@ -1,8 +1,8 @@
 import { QueryService } from "@/app/services/queryClient";
-import { Genre, MovieItem } from "@/types/types";
+import { MovieItem } from "@/types/types";
 import { Film } from "lucide-react";
 import Image from "next/image";
-import { DefaultSection } from "../SearchComponent";
+import { DefaultSection } from "./SearchComponent";
 
 export const renderDefaultContent = (defaultSections: DefaultSection[], handleResultClick: (id: number) => void, formatReleaseDate: (dateString: string) => string) => (
     <div className="p-6">

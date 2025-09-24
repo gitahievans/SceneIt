@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAuth } from "./Providers";
+import { useAuth } from "./Common/Providers";
 import { QueryService } from "@/app/services/queryClient";
 import { useRouter } from "next/navigation";
 

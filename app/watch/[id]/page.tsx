@@ -4,9 +4,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { QueryService } from '@/app/services/queryClient';
 import { use } from 'react';
-import VideoPlayList from '@/components/VideoPlayList';
+import VideoPlayList from '@/components/Player/VideoPlayList';
 import { Video } from '@/types/types';
-import PlayerComponent from '@/components/PlayerComponent';
+import PlayerComponent from '@/components/Player/PlayerComponent';
 
 const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
     const [selectedVideo, setSelectedVideo] = useState(0);

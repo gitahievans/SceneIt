@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "./Providers";
+import { useAuth } from "../Common/Providers";
 
 export default function MovieViewTracker({ movieId }: { movieId: number }) {
   const { user } = useAuth();

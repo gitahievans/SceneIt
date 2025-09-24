@@ -35,7 +35,7 @@ jest.mock('@/components/Loader', () => {
 
 jest.mock('@/app/services/queryClient');
 
-import HomePageContent from '@/components/HomeComponent';
+import HomePageContent from '@/components/Home/HomeComponent';
 import { QueryService } from '@/app/services/queryClient';
 import { MovieItem } from '@/types/types';
 

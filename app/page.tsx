@@ -1,6 +1,6 @@
 
-import HomePageContent from '@/components/HomeComponent';
-import LoginCheckHandler from '@/components/LoginCheckHandler';
+import HomePageContent from '@/components/Home/HomeComponent';
+import LoginCheckHandler from '@/components/Auth/LoginCheckHandler';
 import { Suspense } from 'react';
 
 const HomePage = () => {

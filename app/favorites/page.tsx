@@ -7,7 +7,7 @@ import { MovieItem } from "@/types/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { QueryService } from "../services/queryClient";
-import Loading from "@/components/Loader";
+import Loading from "@/components/Common/Loader";
 
 const FavoritesPage = () => {
   const [movies, setMovies] = useState<MovieItem[]>([]);

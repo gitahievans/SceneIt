@@ -4,12 +4,12 @@ import { Film, Search, X } from "lucide-react";
 import Image from "next/image";
 import { QueryService } from "@/app/services/queryClient";
 import { Genre, MovieItem } from "@/types/types";
-import { renderDefaultContent } from "./Search/DefaultSearchContent";
-import SpotLight from "./Search/SpotLight";
-import SearchBar from "./Search/SearchBar";
 import { getUserInterests } from "@/utils/supabase/queries";
 import { createClient } from "@/utils/supabase/client";
-import SearchResults from "./Search/SearchResults";
+import { renderDefaultContent } from "./DefaultSearchContent";
+import SearchResults from "./SearchResults";
+import SpotLight from "./SpotLight";
+import SearchBar from "./SearchBar";
 
 interface SearchComponentProps {
     onSearchClick?: (event: React.MouseEvent) => void;

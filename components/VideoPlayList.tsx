@@ -27,6 +27,10 @@ const VideoPlayList = ({ videos,
         handleTypeFilter: (type: string) => void,
         handleVideoSelect: (index: number) => void
     }) => {
+
+
+
+
     return (
             <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg p-4 shadow-xl border border-purple-500/20">
                 <div className="relative mb-4">

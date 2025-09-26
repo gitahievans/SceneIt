@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Film, Search, X } from "lucide-react";
-import Image from "next/image";
+import {  Search, X } from "lucide-react";
 import { QueryService } from "@/app/services/queryClient";
 import { Genre, MovieItem } from "@/types/types";
-import { getUserInterests } from "@/utils/supabase/queries";
-import { createClient } from "@/utils/supabase/client";
+import { getUserInterests, logUserSearch } from "@/utils/supabase/queries";
 import { renderDefaultContent } from "./DefaultSearchContent";
 import SearchResults from "./SearchResults";
 import SpotLight from "./SpotLight";
 import SearchBar from "./SearchBar";
+import { useAuth } from "../Common/Providers";
+import Loading from "../Common/Loader";
 
 interface SearchComponentProps {
     onSearchClick?: (event: React.MouseEvent) => void;
@@ -29,59 +29,73 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     onClose,
 }) => {
     const router = useRouter();
-
+    const user = useAuth().user;
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState<MovieItem[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
+    const [resultLoading, setResultLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const searchRef = useRef<HTMLDivElement>(null);
     const resultsRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
+    
+    // we cache genres to avoid repeated api calls
+    const genresCache = useRef<Genre[] | null>(null);
 
     const { getPoster, searchMovies } = QueryService;
 
-    const [defaultSections, setDefaultSections] = useState<
-        DefaultSection[]
-    >([]);
+    const [defaultSections, setDefaultSections] = useState<DefaultSection[]>([]);
+
+    // we get genres in a memoized function 
+    const getGenres = useCallback(async (): Promise<Genre[]> => {
+        if (genresCache.current) {
+            return genresCache.current;
+        }
+        
+        const res = await QueryService.getGenres();
+        genresCache.current = res.genres;
+        return res.genres;
+    }, []);
 
     useEffect(() => {
         const loadInterests = async () => {
-            const supabase = createClient();
-            const { data: { user } } = await supabase.auth.getUser();
+            if (!user?.id) return;
 
-            if (!user) return;
-
-            const genres = await getUserInterests(user.id);
-
-            const results = await Promise.all(
-                genres.map(async (genreId) => {
+            try {
+                const genres = await getUserInterests(user.id);
+                
+                // get genre names first, single api call with caching
+                const allGenres = await getGenres();
+                
+                // get movies for all genres in parallel
+                const moviePromises = genres.map(async (genreId) => {
                     const res = await QueryService.getMoviesByGenre(genreId);
                     return { genreId, movies: res.results || [] };
-                })
-            );
-            // add a section title (the genre name)
-            const genreNames = await Promise.all(
-                genres.map(async (genreId) => {
-                    const res = await QueryService.getGenres();
-                    return { genreId, name: res.genres.find((g: Genre) => g.id === genreId)?.name };
-                })
-            );
+                });
+                
+                const movieResults = await Promise.all(moviePromises);
 
-            setDefaultSections(genreNames.map((genreName) => ({
-                genreId: genreName.genreId,
-                movies: results.find((result) => result.genreId === genreName.genreId)?.movies || [],
-                name: genreName.name,
-            })));
+                // combine genre names and movies
+                setDefaultSections(genres.map((genreId) => {
+                    const genreName = allGenres.find((g) => g.id === genreId)?.name || 'Unknown';
+                    const movies = movieResults.find((result) => result.genreId === genreId)?.movies || [];
+                    
+                    return {
+                        genreId,
+                        movies,
+                        name: genreName,
+                    };
+                }));
+            } catch (error) {
+                console.error("Error loading interests:", error);
+            }
         };
 
         loadInterests();
-    }, []);
-    console.log("defaultSections", defaultSections);
-
-
+    }, [user?.id, getGenres]);
 
     const performSearch = useCallback(async (term: string) => {
         if (!term.trim()) {
@@ -95,7 +109,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         }
 
         abortControllerRef.current = new AbortController();
-
         setIsSearching(true);
         setError(null);
 
@@ -105,6 +118,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             if (abortControllerRef.current?.signal.aborted) {
                 return;
             }
+
             const movies: MovieItem[] = response.results?.map((movie: MovieItem) => ({
                 id: movie.id,
                 title: movie.title,
@@ -118,6 +132,13 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
 
             setSearchResults(movies);
             setShowResults(true);
+
+            if (user?.id) {
+                logUserSearch(user.id, term).catch(err => 
+                    console.error("Failed to log search:", err)
+                );
+            }
+
         } catch (err) {
             if (!abortControllerRef.current?.signal.aborted) {
                 console.error("Search error:", err);
@@ -128,19 +149,15 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         } finally {
             setIsSearching(false);
         }
-    }, [searchMovies]);
+    }, [searchMovies, user?.id]);
 
+    // debounced search with cleanup
     useEffect(() => {
         const timeoutId = setTimeout(() => {
             performSearch(searchTerm);
-        }, 300);
+        }, 500);    
 
-        return () => {
-            clearTimeout(timeoutId);
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort();
-            }
-        };
+        return () => clearTimeout(timeoutId);
     }, [searchTerm, performSearch]);
 
     useEffect(() => {
@@ -165,8 +182,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     useEffect(() => {
         if (!isSpotlight) {
             const handleClickOutside = (event: MouseEvent) => {
-                console.log("handleClickOutside", event);
-
                 if (
                     searchRef.current &&
                     !searchRef.current.contains(event.target as Node) &&
@@ -178,8 +193,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             };
 
             document.addEventListener("mousedown", handleClickOutside);
-            return () =>
-                document.removeEventListener("mousedown", handleClickOutside);
+            return () => document.removeEventListener("mousedown", handleClickOutside);
         }
     }, [isSpotlight]);
 
@@ -203,12 +217,22 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     };
 
     const handleResultClick = (id: number) => {
+        setResultLoading(true);
+        const movie = searchResults.find((movie) => movie.id === id);
+
+        if (user?.id && movie) {
+            logUserSearch(user.id, searchTerm, id, movie.genre_ids, true).catch(err =>
+                console.error("Failed to log click:", err)
+            );
+        }
+
         setShowResults(false);
         setSearchTerm("");
         if (isSpotlight) {
             onClose?.();
         }
         router.push(`/details/${id}`);
+        setResultLoading(false);
     };
 
     const handleInputClick = (event: React.MouseEvent) => {
@@ -228,7 +252,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         if (!dateString) return "";
         return new Date(dateString).getFullYear().toString();
     };
-
 
     const renderSearchResults = () => {
         if (!searchTerm.trim()) {
@@ -299,6 +322,13 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
             </div>
         );
     };
+
+
+    if (resultLoading) {
+        return (
+            <Loading />
+        )
+    }
 
     if (isSpotlight) {
         return (

@@ -37,7 +37,9 @@ const Section = memo(({ title, movies, isLoading = false, showViewAll = false, o
   return (
     <section className="my-8">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="md:text-lg font-semibold text-gray-900 dark:text-white">{title}</h2>
+        <h2 className="md:text-lg font-semibold text-gray-900 dark:text-white">
+          {title}
+        </h2>
         {showViewAll && movies.length > 0 && (
           <button
             onClick={onViewAll}
@@ -67,7 +69,7 @@ const Section = memo(({ title, movies, isLoading = false, showViewAll = false, o
           }}
           slideGap="md"
           withIndicators={false}
-          withControls={movies.length > 5} 
+          withControls={movies.length > 5}
           controlsOffset="xs"
           controlSize={36}
           nextControlIcon={

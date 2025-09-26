@@ -1,11 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
 // mock a user
-jest.mock("@/components/Providers", () => ({
+jest.mock("@/components/Common/Providers", () => ({
     useAuth: jest.fn(() => ({ user: { id: 'tester' } }))
 }));
 
-import LikeButton from "@/components/LikeButton";
+import LikeButton from "@/components/DetailsPage/LikeButton";
 
 describe("LikeButton", () => {
     const mockFetch = jest.fn();

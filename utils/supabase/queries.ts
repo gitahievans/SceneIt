@@ -30,6 +30,23 @@ export async function getUserLikes(userId: string) {
   return data.map((row) => row.movie_id);
 }
 
+export async function getUserWatched(userId: string) {
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from("user_movie_interactions")
+    .select("movie_id")
+    .eq("user_id", userId)
+    .eq("action", "watched");
+
+  if (error) {
+    console.error("Error fetching watched:", error);
+    return [];
+  }
+
+  return data.map((row) => row.movie_id);
+}
+
 export async function getUserSearches(userId: string) {
   const supabase = createClient();
 

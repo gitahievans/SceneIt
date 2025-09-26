@@ -9,7 +9,6 @@ const DetailsPage = ({ params }: { params: Promise<{ id: number }> }) => {
 
     return (
         <div className='min-h-screen bg-gray-900'>
-            <MovieViewTracker movieId={id} />
             <MovieDetailsClient movieId={id} />
         </div>
     )

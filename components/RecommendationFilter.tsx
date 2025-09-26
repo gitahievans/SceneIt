@@ -78,7 +78,7 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
   const activeCount = activeFilters.includes("all") ? 1 : activeFilters.length;
 
   return (
-    <div className={`sticky top-4 z-10 ${className}`}>
+    <div className={`sticky top-16 z-10 ${className}`}>
       <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
         {isMobile && (
           <div className="flex items-center justify-between p-4">

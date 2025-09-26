@@ -2,9 +2,28 @@
 
 import React from 'react'
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/components/Common/Providers';
+import { useEffect } from 'react';
 
 const WatchButton = ({ movieId }: { movieId: number }) => {
     const router = useRouter();
+    const { user } = useAuth();
+
+    useEffect(() => {
+        if (user) {
+          fetch("/api/interactions", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              user_id: user.id,
+              movie_id: movieId,
+              action: "watched",
+            }),
+          });
+        }
+        console.log("watched interaction added");
+      }, [user, movieId]);
+
     return (
         <button onClick={() => router.push(`/watch/${movieId}`)} className="group/btn relative p-4 bg-transparent border border-white/20 md:bg-gradient-to-r from-gray-600 to-black rounded-xl md:rounded-2xl font-semibold text-white shadow-lg md:hover:shadow-orange-500/25 md:hover:shadow-xl transition-all duration-300 transform hover:scale-105 overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-red-400 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></div>

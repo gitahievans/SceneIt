@@ -61,6 +61,17 @@ function DiscoverHero() {
             open();
             return;
         } else {
+            if (mainMovie) {
+                fetch("/api/interactions", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      user_id: user.id,
+                      movie_id: mainMovie.id,
+                      action: "watched",
+                    }),
+                  });
+            }
             router.push(`/watch/${mainMovie?.id}`);
         }
     }

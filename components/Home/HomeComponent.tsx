@@ -2,12 +2,12 @@
 
 import React, { useState, useMemo, useEffect } from 'react'
 import { useQueries, useQuery } from '@tanstack/react-query';
-import Section from '@/components/Section';
 import { MovieResponse, Genre, GenreResponse } from '@/types/types';
 import EmailConfirmationModal from '@/components/EmailConfirmationModal';
 import { QueryService } from '@/app/services/queryClient';
 import HomeHeroSection from './HomeHeroSection';
-import Loading from './Loader';
+import Loading from '../Common/Loader';
+import Section from '../Common/Section';
 
 const GENRES_PER_PAGE = 4;
 

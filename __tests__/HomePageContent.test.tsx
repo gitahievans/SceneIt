@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 
 // Mock the components and services
-jest.mock('@/components/Section', () => {
+jest.mock('@/components/Common/Section', () => {
     return function Section({ title, movies }: { title: string; movies: MovieItem[] }) {
         return (
             <div data-testid={`section-${title}`}>
@@ -15,7 +15,7 @@ jest.mock('@/components/Section', () => {
     };
 });
 
-jest.mock('@/components/HomeHeroSection', () => {
+jest.mock('@/components/Home/HomeHeroSection', () => {
     return function HomeHeroSection() {
         return <div data-testid="hero-section">Hero Section</div>;
     };
@@ -27,7 +27,7 @@ jest.mock('@/components/EmailConfirmationModal', () => {
     };
 });
 
-jest.mock('@/components/Loader', () => {
+jest.mock('@/components/Common/Loader', () => {
     return function Loading() {
         return <div data-testid="loading">Loading...</div>;
     };
@@ -35,7 +35,7 @@ jest.mock('@/components/Loader', () => {
 
 jest.mock('@/app/services/queryClient');
 
-import HomePageContent from '@/components/HomeComponent';
+import HomePageContent from '@/components/Home/HomeComponent';
 import { QueryService } from '@/app/services/queryClient';
 import { MovieItem } from '@/types/types';
 

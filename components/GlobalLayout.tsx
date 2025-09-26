@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { usePathname } from 'next/navigation'
-import Navbar from './Navbar';
+import Navbar from './Common/Navbar';
 
 const GlobalLayout = ({ children }: { children: React.ReactNode }) => {
     const pathname = usePathname();

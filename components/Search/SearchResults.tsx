@@ -16,7 +16,7 @@ const SearchResults = ({ item,
     truncateText: (text: string, maxLength: number) => string;
     getPoster: (path: string) => string;
 }) => {
-    console.log("item in search results", item);
+    // console.log("item in search results", item);
     const { getGenres } = QueryService;
     const [genreNames, setGenreNames] = useState<string[]>([]);
     

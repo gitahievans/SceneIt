@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect } from "react";
-import { useAuth } from "./Providers";
+import { useAuth } from "../Common/Providers";
 
-export default function DetailsClient({ movieId }: { movieId: number }) {
+export default function MovieViewTracker({ movieId }: { movieId: number }) {
   const { user } = useAuth();
-  // console.log("user in details client", user);
-  // console.log("movieId in details client", movieId);
 
   useEffect(() => {
     if (user) {

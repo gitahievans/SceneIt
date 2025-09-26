@@ -4,15 +4,15 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { QueryService } from "@/app/services/queryClient";
 import { getUserInterests } from "@/utils/supabase/queries";
-import { useAuth } from "./Providers";
+import { useAuth } from "../Common/Providers";
 import { MovieItem } from "@/types/types";
-import { toggleLike, checkLikedStatus } from "./LikeButton";
 import { useRouter } from "next/navigation";
 import { Check, Plus, TicketCheck } from "lucide-react";
-import Loading from "./Loader";
+import Loading from "../Common/Loader";
 import Image from "next/image";
-import LoginModal from "./LoginModal";
+import LoginModal from "../Auth/LoginModal";
 import { useDisclosure } from "@mantine/hooks";
+import { checkLikedStatus, toggleLike } from "../DetailsPage/LikeButton";
 
 function DiscoverHero() {
     const { user } = useAuth();

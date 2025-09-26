@@ -1,11 +1,11 @@
 'use client'
 
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/components/Providers';
+import { useAuth } from '@/components/Common/Providers';
 import { getUserInterests } from '@/utils/supabase/queries';
 import { QueryService } from '../services/queryClient';
 import { Edit } from 'lucide-react';
-import Loading from '@/components/Loader';
+import Loading from '@/components/Common/Loader';
 
 export default function ProfilePage() {
     const { user, loading } = useAuth();

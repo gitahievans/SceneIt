@@ -1,5 +1,4 @@
-import SignUpButton from "@/components/SignUpButton";
-import { signup } from "../actions";
+import SignUpButton from "@/components/Auth/SignUpButton";
 
 export default function SignupPage() {
   return (

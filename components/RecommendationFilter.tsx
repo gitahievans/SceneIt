@@ -67,8 +67,8 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
 
   const allOption: FilterOption = {
     id: "all",
-    label: "All Recommendations",
-    icon: <Eye size={16} />,
+    label: "All",
+    icon: <Eye size={14} />,
     count: totalCount,
     color: "bg-gradient-to-r from-purple-500 to-pink-500"
   };
@@ -76,28 +76,51 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
   const allOptions = [allOption, ...filterOptions];
 
   const activeCount = activeFilters.includes("all") ? 1 : activeFilters.length;
+  const hasActiveFilters = !activeFilters.includes("all") && activeFilters.length > 0;
+
+  const getActiveFilterSummary = () => {
+    if (activeFilters.includes("all")) return "All";
+    if (activeFilters.length === 1) {
+      const filter = allOptions.find(f => f.id === activeFilters[0]);
+      return filter?.label || "Custom Filter";
+    }
+    return `${activeFilters.length} filters active`;
+  };
 
   return (
     <div className={`sticky top-16 z-10 ${className}`}>
-      <div className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
-        {isMobile && (
-          <div className="flex items-center justify-between p-4">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                <Filter className="text-orange-600 dark:text-orange-400" size={18} />
-              </div>
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white">
-                  Filter Recommendations
-                </h3>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  {activeCount} filter{activeCount !== 1 ? 's' : ''} active
-                </p>
-              </div>
+      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+        <div className="flex items-center justify-between p-3">
+          <div className="flex items-center space-x-3">
+            <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+              <Filter className="text-orange-600 dark:text-orange-400" size={16} />
             </div>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
+                {getActiveFilterSummary()}
+              </span>
+              {hasActiveFilters && (
+                <span className="px-2 py-0.5 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-full text-xs font-medium">
+                  {activeCount}
+                </span>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            {hasActiveFilters && (
+              <button
+                onClick={clearAllFilters}
+                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                title="Clear filters"
+              >
+                <X size={14} />
+              </button>
+            )}
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+              title={isExpanded ? "Hide filters" : "Show filters"}
             >
               <ChevronDown 
                 className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
@@ -106,33 +129,13 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
               />
             </button>
           </div>
-        )}
+        </div>
 
-        {!isMobile && (
-          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                <Filter className="text-orange-600 dark:text-orange-400" size={20} />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Filter Your Recommendations
-              </h3>
-            </div>
-            {!activeFilters.includes("all") && activeFilters.length > 0 && (
-              <button
-                onClick={clearAllFilters}
-                className="flex items-center space-x-2 px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                <X size={14} />
-                <span>Clear All</span>
-              </button>
-            )}
-          </div>
-        )}
-
-        <div className={`${isMobile && !isExpanded ? 'hidden' : 'block'}`}>
-          <div className="p-4 space-y-3">
-            <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'}`}>
+        {isExpanded && (
+          <div className="border-t border-gray-200 dark:border-gray-700 p-3">
+            <div className={`grid gap-2 ${
+              isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+            }`}>
               {allOptions.map((option) => {
                 const isActive = activeFilters.includes(option.id);
                 
@@ -140,60 +143,42 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
                   <button
                     key={option.id}
                     onClick={() => handleFilterToggle(option.id)}
-                    className={`relative group flex items-center space-x-3 p-3 rounded-xl transition-all duration-200 text-left ${
+                    className={`flex items-center justify-between p-2 rounded-lg transition-all duration-200 text-left text-sm ${
                       isActive
-                        ? 'bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 shadow-md'
-                        : 'bg-gray-50 dark:bg-gray-800 border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-sm'
+                        ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
+                        : 'bg-gray-50 dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-600'
                     }`}
                   >
-                    <div className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
-                      isActive 
-                        ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-600 dark:text-orange-400' 
-                        : 'bg-white dark:bg-gray-700 text-gray-600 dark:text-gray-400 group-hover:bg-gray-100 dark:group-hover:bg-gray-600'
-                    }`}>
-                      {option.icon}
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <div className={`flex-shrink-0 p-1 rounded transition-colors ${
+                        isActive 
+                          ? 'text-orange-600 dark:text-orange-400' 
+                          : 'text-gray-500 dark:text-gray-400'
+                      }`}>
+                        {option.icon}
+                      </div>
+                      <span className={`font-medium truncate ${
+                        isActive 
+                          ? 'text-orange-900 dark:text-orange-100' 
+                          : 'text-gray-700 dark:text-gray-300'
+                      }`}>
+                        {option.label}
+                      </span>
                     </div>
                     
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
-                        <p className={`font-medium truncate transition-colors ${
-                          isActive 
-                            ? 'text-orange-900 dark:text-orange-100' 
-                            : 'text-gray-900 dark:text-white'
-                        }`}>
-                          {option.label}
-                        </p>
-                        <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                          isActive
-                            ? 'bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200'
-                            : 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-                        }`}>
-                          {option.count}
-                        </span>
-                      </div>
-                    </div>
-
-                    {isActive && (
-                      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-orange-500/5 to-pink-500/5 dark:from-orange-400/5 dark:to-pink-400/5 pointer-events-none" />
-                    )}
+                    <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${
+                      isActive
+                        ? 'bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200'
+                        : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
+                    }`}>
+                      {option.count}
+                    </span>
                   </button>
                 );
               })}
             </div>
-
-            {isMobile && !activeFilters.includes("all") && activeFilters.length > 0 && (
-              <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
-                <button
-                  onClick={clearAllFilters}
-                  className="w-full flex items-center justify-center space-x-2 px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  <X size={14} />
-                  <span>Clear All Filters</span>
-                </button>
-              </div>
-            )}
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -211,29 +196,29 @@ export const createFilterOptions = (
   const baseOptions: FilterOption[] = [
     {
       id: "trending",
-      label: "Trending & Popular",
-      icon: <TrendingUp size={16} />,
+      label: "Trending",
+      icon: <TrendingUp size={14} />,
       count: trendingCount,
       color: "bg-gradient-to-r from-red-500 to-orange-500"
     },
     {
       id: "interests",
-      label: "Your Interests",
-      icon: <User size={16} />,
+      label: "Interests",
+      icon: <User size={14} />,
       count: interestCount,
       color: "bg-gradient-to-r from-blue-500 to-purple-500"
     },
     {
       id: "searches",
-      label: "Recent Searches",
-      icon: <Search size={16} />,
+      label: "Searches",
+      icon: <Search size={14} />,
       count: searchCount,
       color: "bg-gradient-to-r from-green-500 to-teal-500"
     },
     {
       id: "favorites",
-      label: "Similar to Favorites",
-      icon: <Heart size={16} />,
+      label: "Favorites",
+      icon: <Heart size={14} />,
       count: favoritesCount,
       color: "bg-gradient-to-r from-pink-500 to-rose-500"
     }
@@ -243,7 +228,7 @@ export const createFilterOptions = (
     baseOptions.push({
       id: key,
       label: key.charAt(0).toUpperCase() + key.slice(1),
-      icon: <Star size={16} />,
+      icon: <Star size={14} />,
       count,
       color: "bg-gradient-to-r from-indigo-500 to-purple-500"
     });

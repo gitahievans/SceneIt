@@ -11,6 +11,7 @@ import { Edit } from "lucide-react";
 import Section from "@/components/Common/Section";
 import RecommendationFilter, { createFilterOptions } from "@/components/RecommendationFilter";
 import { useAuth } from "@/components/Common/Providers";
+import ChatInterface from "@/components/AI/ChatInterface";
 
 const DiscoverPage = () => {
   const [trending, setTrending] = useState<MovieItem[]>([]);
@@ -62,8 +63,6 @@ const DiscoverPage = () => {
     favoritesCount,
     { watched: watchedCount }
   );
-
-  // console.log("genreNames", genreNames);
 
   useEffect(() => {
     const loadDiscover = async () => {
@@ -281,6 +280,12 @@ const DiscoverPage = () => {
           </div>
         </div>
       )}
+
+      {/* AI Chat Interface */}
+      <ChatInterface 
+        userId={user?.id}
+        userEmail={user?.email}
+      />
     </div>
   );
 };

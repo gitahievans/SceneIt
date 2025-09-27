@@ -1,3 +1,4 @@
+// app/services/queryClient.ts
 const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const ACCESS_TOKEN = process.env.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN;
 const BASE_URL = "https://api.themoviedb.org/3";

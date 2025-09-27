@@ -30,7 +30,7 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -43,7 +43,7 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
       newActiveFilters = ["all"];
     } else {
       const filteredActive = activeFilters.filter(f => f !== "all");
-      
+
       if (filteredActive.includes(filterId)) {
         newActiveFilters = filteredActive.filter(f => f !== filterId);
         if (newActiveFilters.length === 0) {
@@ -90,7 +90,7 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
   return (
     <div className={`sticky top-16 z-10 ${className}`}>
       <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-        <div className="flex items-center justify-between p-3">
+        <div className="flex items-center justify-between p-3 cursor-pointer" onClick={() => setIsExpanded(!isExpanded)}>
           <div className="flex items-center space-x-3">
             <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
               <Filter className="text-orange-600 dark:text-orange-400" size={16} />
@@ -106,7 +106,7 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
               )}
             </div>
           </div>
-          
+
           <div className="flex items-center space-x-2">
             {hasActiveFilters && (
               <button
@@ -122,7 +122,7 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
               className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
               title={isExpanded ? "Hide filters" : "Show filters"}
             >
-              <ChevronDown 
+              <ChevronDown
                 className={`transform transition-transform duration-200 ${isExpanded ? 'rotate-180' : ''}`}
                 size={20}
                 color="orange"
@@ -133,44 +133,39 @@ const RecommendationFilter: React.FC<RecommendationFilterProps> = ({
 
         {isExpanded && (
           <div className="border-t border-gray-200 dark:border-gray-700 p-3">
-            <div className={`grid gap-2 ${
-              isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-            }`}>
+            <div className={`grid gap-2 ${isMobile ? 'grid-cols-1' : 'grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+              }`}>
               {allOptions.map((option) => {
                 const isActive = activeFilters.includes(option.id);
-                
+
                 return (
                   <button
                     key={option.id}
                     onClick={() => handleFilterToggle(option.id)}
-                    className={`flex items-center justify-between p-2 rounded-lg transition-all duration-200 text-left text-sm ${
-                      isActive
+                    className={`flex items-center justify-between p-2 rounded-lg transition-all duration-200 text-left text-sm ${isActive
                         ? 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800'
                         : 'bg-gray-50 dark:bg-gray-800 border border-transparent hover:border-gray-200 dark:hover:border-gray-600'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center space-x-2 min-w-0">
-                      <div className={`flex-shrink-0 p-1 rounded transition-colors ${
-                        isActive 
-                          ? 'text-orange-600 dark:text-orange-400' 
+                      <div className={`flex-shrink-0 p-1 rounded transition-colors ${isActive
+                          ? 'text-orange-600 dark:text-orange-400'
                           : 'text-gray-500 dark:text-gray-400'
-                      }`}>
+                        }`}>
                         {option.icon}
                       </div>
-                      <span className={`font-medium truncate ${
-                        isActive 
-                          ? 'text-orange-900 dark:text-orange-100' 
+                      <span className={`font-medium truncate ${isActive
+                          ? 'text-orange-900 dark:text-orange-100'
                           : 'text-gray-700 dark:text-gray-300'
-                      }`}>
+                        }`}>
                         {option.label}
                       </span>
                     </div>
-                    
-                    <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${
-                      isActive
+
+                    <span className={`ml-2 px-1.5 py-0.5 rounded text-xs font-medium ${isActive
                         ? 'bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200'
                         : 'bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-400'
-                    }`}>
+                      }`}>
                       {option.count}
                     </span>
                   </button>

@@ -172,7 +172,7 @@ const DiscoverPage = () => {
     <div className="max-w-7xl mx-auto space-y-8 px-2">
       <div className="flex flex-col items-center justify-center space-y-2 p-2">
         <h1 className="text-xl md:text-2xl text-center font-semibold text-black dark:text-white">
-          Hey {user?.email?.split("@")[0]}, here are Recommendations for You
+          Hey <span className="font-bold text-orange-500">{user?.email?.split("@")[0]}</span>, here are some movie Recommendations for You
         </h1>
         {/* <h3 className="md:text-lg text-center text-gray-600 dark:text-gray-400">Based on your Interests and What's Trending</h3> */}
       </div>
@@ -180,7 +180,7 @@ const DiscoverPage = () => {
       <RecommendationFilter
         onFilterChange={handleFilterChange}
         filterOptions={filterOptions}
-        className="mb-8"
+      // className="mb-8"
       />
 
       {shouldShowSection("trending") && (

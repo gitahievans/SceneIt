@@ -19,6 +19,7 @@ const eslintConfig = [
       "out/**",
       "build/**",
       "next-env.d.ts",
+      "supabase/functions/**"
     ],
   },
   ...compat.extends("next/core-web-vitals", "next/typescript"),

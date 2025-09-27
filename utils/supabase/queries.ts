@@ -1,3 +1,5 @@
+// utils/supabase/queries.ts
+
 import { createClient } from "@/utils/supabase/client";
 
 export async function getUserInterests(userId: string) {

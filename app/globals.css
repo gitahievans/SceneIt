@@ -5,3 +5,13 @@
 body {
     @apply bg-gray-50 dark:bg-gray-900;
 }
+
+.ai-message strong {
+    font-weight: 600;
+    color: inherit;
+}
+
+.ai-message em {
+    font-style: italic;
+    color: inherit;
+}

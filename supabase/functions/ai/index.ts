@@ -9,17 +9,23 @@ console.log("AI Chat function loaded!")
 const functionName = 'ai'
 const app = new Hono().basePath(`/${functionName}`)
 
-// Configure CORS middleware
 app.use('/*', cors({
-  origin: ['http://localhost:3000', 'https://seen-it-aymo.vercel.app/'], 
+  origin: ['http://localhost:3000', 'https://seen-it-aymo.vercel.app'], 
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['POST', 'GET', 'OPTIONS'],
 }))
 
-// Health check endpoint
+app.use('/*', async (c, next) => {
+  console.log('Incoming request:', {
+    method: c.req.method,
+    path: c.req.path,
+    headers: Object.fromEntries(c.req.raw.headers.entries())
+  });
+  await next();
+});
+
 app.get('/health', (c) => c.json({ status: 'ok', timestamp: new Date().toISOString() }))
 
-// Main AI chat endpoint
 app.post('/chat', async (c) => {
   try {
     const { message, userId } = await c.req.json()
@@ -29,7 +35,6 @@ app.post('/chat', async (c) => {
       return c.json({ error: 'Message is required' }, 400)
     }
 
-    // Debug environment variables
     console.log('Environment check:', {
       supabaseUrl: Deno.env.get('SUPABASE_URL'),
       supabaseKey: Deno.env.get('SUPABASE_ANON_KEY') ? 'Set' : 'Not set',
@@ -39,7 +44,6 @@ app.post('/chat', async (c) => {
       tmdbKey: Deno.env.get('TMDB_API_KEY') ? 'Set' : 'Not set'
     })
 
-    // For local development, prefer SUPABASE_* vars, fallback to NEXT_PUBLIC_*
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || 
                        Deno.env.get('NEXT_PUBLIC_SUPABASE_URL') || 
                        'http://127.0.0.1:54321'
@@ -54,20 +58,17 @@ app.post('/chat', async (c) => {
     console.log('Using Supabase URL:', supabaseUrl)
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // Build user context if userId is provided
     let userContext = {}
     
     if (userId) {
       console.log('Fetching user data...')
       
       try {
-        // Get user interests (genres they like)
         const { data: interests } = await supabase
           .from('user_interests')
           .select('genre_id')
           .eq('user_id', userId)
 
-        // Get user liked movies
         const { data: likes } = await supabase
           .from('user_movie_interactions')
           .select('movie_id')
@@ -75,7 +76,6 @@ app.post('/chat', async (c) => {
           .eq('action', 'favorited')
           .limit(5)
 
-        // Get user watched movies
         const { data: watched } = await supabase
           .from('user_movie_interactions')
           .select('movie_id')
@@ -83,7 +83,6 @@ app.post('/chat', async (c) => {
           .eq('action', 'watched')
           .limit(5)
 
-        // Get recent searches
         const { data: searches } = await supabase
           .from('user_searches')
           .select('query')
@@ -101,11 +100,9 @@ app.post('/chat', async (c) => {
         console.log('User context built:', userContext)
       } catch (error) {
         console.error('Error fetching user data:', error)
-        // Continue with empty context if user data fails
       }
     }
 
-    // Get some trending movies from TMDB
     const tmdbKey = Deno.env.get('TMDB_API_KEY')
     let movieContext = {}
     
@@ -142,7 +139,6 @@ app.post('/chat', async (c) => {
       }
     }
 
-    // Build a shorter AI prompt to avoid token limits
     const aiPrompt = `You are SceneIt AI, a movie recommendation assistant.
 
 User question: ${message}
@@ -153,7 +149,6 @@ ${movieContext && Object.keys(movieContext).length > 0 ? `Current trending movie
 
 Respond conversationally with helpful movie recommendations. Keep response under 200 words.`
 
-    // Call Gemini AI
     const geminiKey = Deno.env.get('GEMINI_API_KEY')
     if (!geminiKey) {
       throw new Error('GEMINI_API_KEY not configured')
@@ -200,39 +195,30 @@ Respond conversationally with helpful movie recommendations. Keep response under
 
     const aiData = await geminiResponse.json()
     
-    // Debug the response structure
     console.log('Full Gemini response:', JSON.stringify(aiData, null, 2))
     
-    // Extract the AI message with better error handling
     let aiMessage = "I'm sorry, I couldn't generate a response right now."
     
     if (aiData.candidates && aiData.candidates.length > 0) {
       const candidate = aiData.candidates[0]
       
-      // Check different possible response structures
       if (candidate.content) {
-        // Try the standard structure first
         if (candidate.content.parts && candidate.content.parts.length > 0) {
           const text = candidate.content.parts[0].text
           if (text && text.trim()) {
             aiMessage = text.trim()
           }
         }
-        // Try alternative structure
         else if (candidate.content.text) {
           aiMessage = candidate.content.text.trim()
         }
-        // Try if content is directly text
         else if (typeof candidate.content === 'string') {
           aiMessage = candidate.content.trim()
         }
       }
-      // Try direct text property on candidate
       else if (candidate.text) {
         aiMessage = candidate.text.trim()
       }
-      
-      // Log finish reason for debugging
       if (candidate.finishReason) {
         console.log('Finish reason:', candidate.finishReason)
         if (candidate.finishReason === 'MAX_TOKENS') {
@@ -255,10 +241,8 @@ Respond conversationally with helpful movie recommendations. Keep response under
   }
 })
 
-// Handle 404 for undefined routes
 app.notFound((c) => c.json({ error: 'Not found' }, 404))
 
-// Error handler
 app.onError((err, c) => {
   console.error('Unhandled error:', err)
   return c.json({ error: 'Internal server error' }, 500)

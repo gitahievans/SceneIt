@@ -16,11 +16,8 @@ interface ChatInterfaceProps {
 
 const formatAIResponse = (text: string): string => {
   return text
-    // Convert **bold** to proper formatting (we'll handle this in CSS)
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    // Convert *italic* to proper formatting  
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    // Ensure proper line breaks
     .replace(/\n\n/g, '<br><br>')
     .replace(/\n/g, '<br>');
 };
@@ -73,12 +70,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, userEmail }) => {
     setIsLoading(true);
 
     try {
-      // Call Supabase edge function instead of Next.js API
       const response = await fetch(`${supabaseUrl}/functions/v1/ai/chat`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           message: inputMessage,
@@ -136,7 +132,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, userEmail }) => {
 
   return (
     <>
-      {/* Chat Toggle Button */}
       <div className="fixed bottom-6 right-6 z-50">
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -151,10 +146,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, userEmail }) => {
         </button>
       </div>
 
-      {/* Chat Interface */}
       {isOpen && (
         <div className="fixed bottom-24 right-6 w-96 max-w-[calc(100vw-2rem)] h-[600px] max-h-[calc(100vh-8rem)] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 z-40 flex flex-col animate-in slide-in-from-bottom-4 duration-300">
-          {/* Chat Header */}
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-t-2xl">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -173,7 +166,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, userEmail }) => {
             </button>
           </div>
 
-          {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message) => (
               <div
@@ -221,7 +213,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, userEmail }) => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Quick Questions - Show when no conversation started */}
           {messages.length === 1 && (
             <div className="px-4 pb-2">
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Quick questions:</p>
@@ -239,7 +230,6 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({ userId, userEmail }) => {
             </div>
           )}
 
-          {/* Input */}
           <div className="border-t border-gray-200 dark:border-gray-700 p-4">
             <div className="flex gap-2">
               <input

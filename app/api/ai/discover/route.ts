@@ -31,7 +31,7 @@ const GENRE_HINTS: Record<string, number> = {
   mystery: 9648,
   romance: 10749,
   "science fiction": 878,
-  sci-fi: 878,
+  "sci-fi": 878,
   thriller: 53,
   war: 10752,
   western: 37,

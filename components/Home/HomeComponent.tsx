@@ -117,6 +117,8 @@ const HomePageContent = () => {
                                 <Section
                                     title={genre.name}
                                     movies={loading ? [] : genreMovies}
+                                    showViewAll
+                                    viewAllHref={`/genres/${genre.id}`}
                                 />
                                 {loading && (
                                     <div className="flex items-center justify-center py-8">

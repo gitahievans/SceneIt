@@ -1,41 +1,62 @@
 // app/services/queryClient.ts
-const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
-const ACCESS_TOKEN = process.env.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN;
-const BASE_URL = "https://api.themoviedb.org/3";
+const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
+const FALLBACK_POSTER = "/assets/icon.png";
 
 async function fetchFromAPI(endpoint: string) {
-    const separator = endpoint.includes("?") ? "&" : "?";
-    const res = await fetch(`${BASE_URL}${endpoint}${separator}api_key=${API_KEY}`, {
-        headers: {
-            Authorization: `Bearer ${ACCESS_TOKEN}`,
-            Accept: "application/json",
-        }
-    });
-    if (!res.ok) throw new Error("Failed to fetch data");
+    const res = await fetch(endpoint);
+    if (!res.ok) {
+        const error = await res.json().catch(() => null);
+        throw new Error(error?.error || "Failed to fetch data");
+    }
     return res.json();
 }
 
+function discoverParams(params: Record<string, string | number | undefined>) {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== "") {
+            searchParams.set(key, String(value));
+        }
+    });
+    return searchParams.toString();
+}
+
 export const QueryService = {
-    getDailyTrending: () => fetchFromAPI("/trending/movie/day"),
-    getGenres: () => fetchFromAPI("/genre/movie/list"),
-    getMoviesByGenre: (genreId: number) => fetchFromAPI(`/discover/movie?with_genres=${genreId}`),
-    getMovieDetails: (id: number) => fetchFromAPI(`/movie/${id}`),
+    discoverMovies: (params: Record<string, string | number | undefined> = {}) => {
+        const query = discoverParams(params);
+        return fetchFromAPI(`/api/tmdb/discover${query ? `?${query}` : ""}`);
+    },
+    getDailyTrending: () => fetchFromAPI("/api/tmdb/trending"),
+    getGenres: () => fetchFromAPI("/api/tmdb/genres"),
+    getMoviesByGenre: (genreId: number, page: number = 1) => fetchFromAPI(`/api/tmdb/discover?with_genres=${genreId}&page=${page}`),
+    getMovieDetails: (id: number) => fetchFromAPI(`/api/tmdb/movies/${id}`),
     searchMovies: (query: string) => {
         const encodedQuery = encodeURIComponent(query.trim());
-        return fetchFromAPI(`/search/movie?query=${encodedQuery}`);
+        return fetchFromAPI(`/api/tmdb/search?query=${encodedQuery}`);
     },
     searchMoviesWithPage: (query: string, page: number = 1) => {
         const encodedQuery = encodeURIComponent(query.trim());
-        return fetchFromAPI(`/search/movie?query=${encodedQuery}&page=${page}`);
+        return fetchFromAPI(`/api/tmdb/search?query=${encodedQuery}&page=${page}`);
     },
-    getPoster: (path: string, size?: string) => `https://image.tmdb.org/t/p/${size || "w500"}${path}`,
-    getSimilar: (id: number) => fetchFromAPI(`/movie/${id}/similar`),
-    getPopular: () => fetchFromAPI("/movie/popular"),
-    getNowPlaying: () => fetchFromAPI("/movie/now_playing"),
-    getTopRated: () => fetchFromAPI("/movie/top_rated"),
-    getRecommendations: (id: number) => fetchFromAPI(`/movie/${id}/recommendations`),
-    getMovieVideos: (id: number) => fetchFromAPI(`/movie/${id}/videos`),
-    getPopularMovies: () => fetchFromAPI("/movie/popular"),
-    getTvShowsGenreList: () => fetchFromAPI("/genre/tv/list"),
-    getMoviesGenreList: () => fetchFromAPI("/genre/movie/list"),
+    getPoster: (path?: string | null, size?: string) => path ? `${IMAGE_BASE_URL}/${size || "w500"}${path}` : FALLBACK_POSTER,
+    getSimilar: async (id: number) => {
+        const details = await fetchFromAPI(`/api/tmdb/movies/${id}`);
+        return details.similar || { results: [] };
+    },
+    getPopular: () => fetchFromAPI("/api/tmdb/discover?sort_by=popularity.desc&page=1"),
+    getNowPlaying: () => fetchFromAPI("/api/tmdb/discover?sort_by=primary_release_date.desc&page=1"),
+    getTopRated: () => fetchFromAPI("/api/tmdb/discover?sort_by=vote_average.desc&vote_count.gte=300&page=1"),
+    getRecommendations: async (id: number) => {
+        const details = await fetchFromAPI(`/api/tmdb/movies/${id}`);
+        return details.recommendations || { results: [] };
+    },
+    getMovieVideos: async (id: number) => {
+        const details = await fetchFromAPI(`/api/tmdb/movies/${id}`);
+        return details.videos || { results: [] };
+    },
+    getPopularMovies: () => fetchFromAPI("/api/tmdb/discover?sort_by=popularity.desc&page=1"),
+    getProviders: (region = "US") => fetchFromAPI(`/api/tmdb/providers?region=${region}`),
+    getMovieWatchProviders: (id: number) => fetchFromAPI(`/api/tmdb/movies/${id}/watch-providers`),
+    getTvShowsGenreList: () => fetchFromAPI("/api/tmdb/genres"),
+    getMoviesGenreList: () => fetchFromAPI("/api/tmdb/genres"),
 }

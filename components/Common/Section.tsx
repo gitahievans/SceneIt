@@ -6,6 +6,7 @@ import { DynamicIcon } from "lucide-react/dynamic";
 import { memo } from "react";
 import { MovieItem } from "@/types/types";
 import MovieCard from "./MovieCard";
+import Link from "next/link";
 
 type SectionProps = {
   title: string;
@@ -13,6 +14,7 @@ type SectionProps = {
   isLoading?: boolean;
   showViewAll?: boolean;
   onViewAll?: () => void;
+  viewAllHref?: string;
 };
 
 const gradient = "from-blue-600 to-purple-600";
@@ -29,7 +31,7 @@ const LoadingSkeleton = memo(() => (
   </div>
 ));
 
-const Section = memo(({ title, movies, isLoading = false, showViewAll = false, onViewAll }: SectionProps) => {
+const Section = memo(({ title, movies, isLoading = false, showViewAll = false, onViewAll, viewAllHref }: SectionProps) => {
   if (!isLoading && (!movies || movies.length === 0)) {
     return null;
   }
@@ -40,7 +42,16 @@ const Section = memo(({ title, movies, isLoading = false, showViewAll = false, o
         <h2 className="md:text-lg font-semibold text-gray-900 dark:text-white">
           {title}
         </h2>
-        {showViewAll && movies.length > 0 && (
+        {showViewAll && movies.length > 0 && viewAllHref && (
+          <Link
+            href={viewAllHref}
+            className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center space-x-1 transition-colors"
+          >
+            <span>View All</span>
+            <DynamicIcon name="arrow-right" size={16} />
+          </Link>
+        )}
+        {showViewAll && movies.length > 0 && !viewAllHref && (
           <button
             onClick={onViewAll}
             className="text-blue-600 hover:text-blue-800 font-medium text-sm flex items-center space-x-1 transition-colors"

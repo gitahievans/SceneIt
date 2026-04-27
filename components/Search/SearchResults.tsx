@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Genre, MovieItem } from '@/types/types';
 import { Search } from 'lucide-react';
 import { QueryService } from '@/app/services/queryClient';
@@ -14,16 +14,26 @@ const SearchResults = ({ item,
     handleResultClick: (id: number) => void;
     formatReleaseDate: (dateString: string) => string;
     truncateText: (text: string, maxLength: number) => string;
-    getPoster: (path: string) => string;
+    getPoster: (path?: string | null) => string;
 }) => {
     // console.log("item in search results", item);
     const { getGenres } = QueryService;
     const [genreNames, setGenreNames] = useState<string[]>([]);
     
-    getGenres().then((data) => {
-        const genreNames = data.genres.filter((genre: Genre) => item.genre_ids.includes(genre.id)).map((genre: Genre) => genre.name);
-        setGenreNames(genreNames);
-    });
+    useEffect(() => {
+        let isMounted = true;
+        getGenres().then((data) => {
+            if (!isMounted) return;
+            const names = data.genres
+                .filter((genre: Genre) => item.genre_ids?.includes(genre.id))
+                .map((genre: Genre) => genre.name);
+            setGenreNames(names);
+        });
+
+        return () => {
+            isMounted = false;
+        };
+    }, [getGenres, item.genre_ids]);
 
     return (
         <div

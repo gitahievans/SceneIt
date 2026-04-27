@@ -45,9 +45,13 @@ Create a `.env.local` at the project root with:
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+TMDB_API_KEY=your_tmdb_api_key
+TMDB_READ_ACCESS_TOKEN=your_tmdb_read_access_token
+GEMINI_API_KEY=your_gemini_api_key
 ```
 
 These are required by `utils/supabase/client.ts` and `utils/supabase/middleware.ts`.
+TMDB and Gemini secrets are used server-side by the Next.js API routes that power discovery and AI recommendations.
 
 ## Installation & Setup
 

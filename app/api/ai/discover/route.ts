@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { enrichMoviesWithRuntime, tmdbServer } from "@/utils/tmdb/server";
 import { MovieItem, Provider } from "@/types/types";
+import moodConfig from "./mood-config.json";
 
 type AiFilters = Record<string, string>;
 
@@ -57,73 +58,14 @@ const GENRE_HINTS: Record<string, number> = {
   western: 37,
 };
 
-const MOOD_HINTS: Array<{
+type MoodHint = {
   label: string;
   triggers: string[];
   genres: number[];
   keywords: string[];
-}> = [
-  {
-    label: "Tense",
-    triggers: ["tense", "suspenseful", "suspense", "edge of my seat", "nail biting", "nerve wracking"],
-    genres: [53, 9648, 80],
-    keywords: ["suspense", "survival", "psychological thriller", "cat and mouse", "conspiracy"],
-  },
-  {
-    label: "Emotional",
-    triggers: ["make me cry", "cry", "tearjerker", "tear jerker", "emotional", "sad", "heartbreaking", "moving"],
-    genres: [18, 10749],
-    keywords: ["grief", "family relationships", "terminal illness", "loss of loved one", "bittersweet"],
-  },
-  {
-    label: "Feel-good",
-    triggers: ["feel good", "feel-good", "uplifting", "comfort movie", "cozy", "wholesome"],
-    genres: [35, 10751, 10749],
-    keywords: ["friendship", "coming of age", "small town", "hope", "family"],
-  },
-  {
-    label: "Mind-bending",
-    triggers: ["mind bending", "mind-bending", "trippy", "twist", "twists", "confusing", "puzzle"],
-    genres: [878, 9648, 53],
-    keywords: ["time travel", "parallel universe", "plot twist", "memory", "alternate reality"],
-  },
-  {
-    label: "Scary",
-    triggers: ["scary", "terrifying", "creepy", "horror", "frightening"],
-    genres: [27, 53],
-    keywords: ["haunted house", "supernatural", "possession", "serial killer", "ghost"],
-  },
-  {
-    label: "Dark",
-    triggers: ["dark", "disturbing", "bleak", "gritty", "violent"],
-    genres: [18, 53, 80],
-    keywords: ["revenge", "murder", "corruption", "trauma", "anti hero"],
-  },
-  {
-    label: "Funny",
-    triggers: ["funny", "hilarious", "laugh", "comedy", "comedies"],
-    genres: [35],
-    keywords: ["satire", "stand-up comedy", "buddy comedy", "romantic comedy", "parody"],
-  },
-  {
-    label: "Action-packed",
-    triggers: ["action packed", "action-packed", "exciting", "adrenaline", "explosive"],
-    genres: [28, 12, 53],
-    keywords: ["chase", "fight", "mission", "martial arts", "explosion"],
-  },
-  {
-    label: "Slow-burn",
-    triggers: ["slow burn", "slow-burn", "slow paced", "atmospheric"],
-    genres: [18, 53, 9648],
-    keywords: ["slow burn", "isolation", "psychological drama", "atmospheric", "character study"],
-  },
-  {
-    label: "Family-friendly",
-    triggers: ["family friendly", "family-friendly", "for kids", "with kids", "children"],
-    genres: [10751, 16, 12],
-    keywords: ["family", "friendship", "talking animal", "children", "adventure"],
-  },
-];
+};
+
+const MOOD_HINTS = moodConfig as MoodHint[];
 
 const STOP_WORDS = [
   "give",

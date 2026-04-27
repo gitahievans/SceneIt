@@ -19,6 +19,7 @@ SceneIt is a Next.js app that surfaces daily-trending movies and lets you explor
 - Browse by genre with pagination and progress indicators
 - Supabase authentication with protected routes
 - Data fetching/caching with TanStack Query
+- AI discovery mood/theme mappings in `app/api/ai/discover/mood-config.json`
 
 ## Tech Stack / Tools
 

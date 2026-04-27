@@ -1,6 +1,8 @@
 "use client";
 
 import { QueryService } from "@/app/services/queryClient";
+import { Genre } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import ProviderBadge from "./ProviderBadge";
@@ -13,6 +15,8 @@ export interface MovieCardProps {
     release_date: string;
     poster_path: string | null;
     vote_average: number;
+    runtime?: number | null;
+    genre_ids?: number[];
     providers?: {
       display_priority: number;
       logo_path: string | null;
@@ -28,12 +32,39 @@ const MovieCard = ({ movie }: MovieCardProps) => {
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
   const rating = Number.isFinite(movie.vote_average) ? movie.vote_average : 0;
 
+  const { data: genresData } = useQuery({
+    queryKey: ["genres"],
+    queryFn: QueryService.getGenres,
+    staleTime: 60 * 60 * 1000,
+  });
+
+  const genreNames: string[] =
+    movie.genre_ids && genresData?.genres
+      ? genresData.genres
+          .filter((genre: Genre) => movie.genre_ids?.includes(genre.id))
+          .slice(0, 2)
+          .map((genre: Genre) => genre.name)
+      : [];
+
   const getRatingColor = (value: number) => {
     if (value >= 8) return "text-green-500 dark:text-green-400";
     if (value >= 7) return "text-yellow-500 dark:text-yellow-400";
     if (value >= 6) return "text-orange-500 dark:text-orange-400";
     return "text-red-500 dark:text-red-400";
   };
+
+  const formatRuntime = (minutes?: number | null) => {
+    if (!minutes) return null;
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return hours ? `${hours}h ${mins}m` : `${mins}m`;
+  };
+
+  const metadata = [
+    releaseYear,
+    formatRuntime(movie.runtime),
+    rating ? `TMDB ${rating.toFixed(1)}` : "NR",
+  ].filter(Boolean);
 
   const handleCardPress = () => {
     router.push(`/details/${movie.id}`);
@@ -79,35 +110,32 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           )}
         </div>
 
-        <div className="space-y-2 p-3 sm:space-y-3 sm:p-4">
+        <div className="space-y-2 p-3 sm:p-4">
           <h3 className="line-clamp-1 text-sm font-bold leading-tight text-gray-900 transition-colors duration-500 group-hover:text-blue-600 dark:text-gray-100 dark:group-hover:text-blue-400 sm:text-base">
             {movie.title}
           </h3>
 
-          <p className="hidden text-xs leading-relaxed text-gray-600 line-clamp-3 transition-colors duration-500 group-hover:text-gray-700 dark:text-gray-400 dark:group-hover:text-gray-300 sm:block">
-            {movie.overview
-              ? movie.overview.length > 50
-                ? `${movie.overview.substring(0, 50)}...`
-                : movie.overview
-              : "No overview available."}
-          </p>
-
-          <div className="flex items-center justify-between border-t border-gray-200 pt-2 dark:border-gray-700">
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-              {movie.release_date
-                ? new Date(movie.release_date).toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })
-                : "Release TBA"}
-            </span>
-            <div className="flex items-center gap-1 rounded-full bg-gray-100 px-1.5 py-1 transition-colors duration-500 hover:bg-yellow-50 dark:bg-gray-800 dark:hover:bg-yellow-900/20 sm:px-2">
-              <span className="text-yellow-500 dark:text-yellow-400">★</span>
-              <span className={`text-xs font-semibold ${getRatingColor(rating)}`}>
-                {rating ? rating.toFixed(1) : "NR"}
+          <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs font-medium text-gray-500 dark:text-gray-400">
+            {metadata.map((item, index) => (
+              <span key={String(item)} className="inline-flex items-center gap-1">
+                {index > 0 && <span className="text-gray-300 dark:text-gray-600">•</span>}
+                {item}
               </span>
-            </div>
+            ))}
           </div>
+
+          {genreNames.length > 0 && (
+            <div className="flex flex-wrap gap-1 border-t border-gray-200 pt-2 dark:border-gray-700">
+              {genreNames.map((genre) => (
+                <span
+                  key={genre}
+                  className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-300"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-full dark:via-white/5" />

@@ -6,17 +6,22 @@ import { QueryService } from "@/app/services/queryClient";
 import { MovieResponse, ProviderResponse } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useParams } from "next/navigation";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function ProviderPage() {
   const params = useParams<{ providerId: string }>();
+  const router = useRouter();
   const providerId = params.providerId;
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("popularity.desc");
-  const [minRating, setMinRating] = useState("");
-  const [maxRuntime, setMaxRuntime] = useState("");
-  const [year, setYear] = useState("");
+  const [ratingMin, setRatingMin] = useState("");
+  const [ratingMax, setRatingMax] = useState("");
+  const [runtimeMin, setRuntimeMin] = useState("");
+  const [runtimeMax, setRuntimeMax] = useState("");
+  const [yearMin, setYearMin] = useState("");
+  const [yearMax, setYearMax] = useState("");
   const [monetization, setMonetization] = useState("flatrate");
 
   const { data: providersData } = useQuery<ProviderResponse>({
@@ -30,7 +35,19 @@ export default function ProviderPage() {
   const providerName = selectedProvider?.provider_name || "Provider";
 
   const { data, isLoading, error } = useQuery<MovieResponse>({
-    queryKey: ["provider-page", providerId, page, sortBy, minRating, maxRuntime, year, monetization],
+    queryKey: [
+      "provider-page",
+      providerId,
+      page,
+      sortBy,
+      ratingMin,
+      ratingMax,
+      runtimeMin,
+      runtimeMax,
+      yearMin,
+      yearMax,
+      monetization,
+    ],
     queryFn: () =>
       QueryService.discoverMovies({
         with_watch_providers: providerId,
@@ -38,9 +55,12 @@ export default function ProviderPage() {
         with_watch_monetization_types: monetization,
         page,
         sort_by: sortBy,
-        "vote_average.gte": minRating,
-        "with_runtime.lte": maxRuntime,
-        year,
+        "vote_average.gte": ratingMin,
+        "vote_average.lte": ratingMax,
+        "with_runtime.gte": runtimeMin,
+        "with_runtime.lte": runtimeMax,
+        "primary_release_date.gte": yearMin ? `${yearMin}-01-01` : undefined,
+        "primary_release_date.lte": yearMax ? `${yearMax}-12-31` : undefined,
         "vote_count.gte": sortBy === "vote_average.desc" ? 200 : 50,
       }),
   });
@@ -55,26 +75,78 @@ export default function ProviderPage() {
         </p>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+      <div className="grid gap-3 md:grid-cols-[minmax(220px,320px)_1fr_220px]">
+        <label className="rounded-lg border border-gray-200 bg-white p-3 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200">
+          Provider
+          <div className="mt-1 flex items-center gap-2">
+            {selectedProvider?.logo_path && (
+              <Image
+                src={QueryService.getPoster(selectedProvider.logo_path, "w45")}
+                alt=""
+                width={28}
+                height={28}
+                className="rounded"
+                unoptimized
+              />
+            )}
+            <select
+              value={providerId}
+              onChange={(event) => {
+                setPage(1);
+                const provider = providersData?.results?.find(
+                  (item) => String(item.provider_id) === event.target.value
+                );
+                router.push(
+                  `/providers/${event.target.value}${
+                    provider ? `?name=${encodeURIComponent(provider.provider_name)}` : ""
+                  }`
+                );
+              }}
+              className="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              {(providersData?.results || []).map((provider) => (
+                <option key={provider.provider_id} value={provider.provider_id}>
+                  {provider.provider_name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </label>
+
         <DiscoveryControls
           sortBy={sortBy}
           setSortBy={(value) => {
             setSortBy(value);
             setPage(1);
           }}
-          minRating={minRating}
-          setMinRating={(value) => {
-            setMinRating(value);
+          ratingMin={ratingMin}
+          setRatingMin={(value) => {
+            setRatingMin(value);
             setPage(1);
           }}
-          maxRuntime={maxRuntime}
-          setMaxRuntime={(value) => {
-            setMaxRuntime(value);
+          ratingMax={ratingMax}
+          setRatingMax={(value) => {
+            setRatingMax(value);
             setPage(1);
           }}
-          year={year}
-          setYear={(value) => {
-            setYear(value);
+          runtimeMin={runtimeMin}
+          setRuntimeMin={(value) => {
+            setRuntimeMin(value);
+            setPage(1);
+          }}
+          runtimeMax={runtimeMax}
+          setRuntimeMax={(value) => {
+            setRuntimeMax(value);
+            setPage(1);
+          }}
+          yearMin={yearMin}
+          setYearMin={(value) => {
+            setYearMin(value);
+            setPage(1);
+          }}
+          yearMax={yearMax}
+          setYearMax={(value) => {
+            setYearMax(value);
             setPage(1);
           }}
         />

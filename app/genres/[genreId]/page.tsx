@@ -14,9 +14,12 @@ export default function GenrePage() {
   const genreId = Number(params.genreId);
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState("popularity.desc");
-  const [minRating, setMinRating] = useState("");
-  const [maxRuntime, setMaxRuntime] = useState("");
-  const [year, setYear] = useState("");
+  const [ratingMin, setRatingMin] = useState("");
+  const [ratingMax, setRatingMax] = useState("");
+  const [runtimeMin, setRuntimeMin] = useState("");
+  const [runtimeMax, setRuntimeMax] = useState("");
+  const [yearMin, setYearMin] = useState("");
+  const [yearMax, setYearMax] = useState("");
 
   const { data: genresData } = useQuery({
     queryKey: ["genres"],
@@ -28,15 +31,18 @@ export default function GenrePage() {
   }, [genresData, genreId]);
 
   const { data, isLoading, error } = useQuery<MovieResponse>({
-    queryKey: ["genre-page", genreId, page, sortBy, minRating, maxRuntime, year],
+    queryKey: ["genre-page", genreId, page, sortBy, ratingMin, ratingMax, runtimeMin, runtimeMax, yearMin, yearMax],
     queryFn: () =>
       QueryService.discoverMovies({
         with_genres: genreId,
         page,
         sort_by: sortBy,
-        "vote_average.gte": minRating,
-        "with_runtime.lte": maxRuntime,
-        year,
+        "vote_average.gte": ratingMin,
+        "vote_average.lte": ratingMax,
+        "with_runtime.gte": runtimeMin,
+        "with_runtime.lte": runtimeMax,
+        "primary_release_date.gte": yearMin ? `${yearMin}-01-01` : undefined,
+        "primary_release_date.lte": yearMax ? `${yearMax}-12-31` : undefined,
         "vote_count.gte": sortBy === "vote_average.desc" ? 200 : 50,
       }),
     enabled: Number.isFinite(genreId),
@@ -58,19 +64,34 @@ export default function GenrePage() {
           setSortBy(value);
           setPage(1);
         }}
-        minRating={minRating}
-        setMinRating={(value) => {
-          setMinRating(value);
+        ratingMin={ratingMin}
+        setRatingMin={(value) => {
+          setRatingMin(value);
           setPage(1);
         }}
-        maxRuntime={maxRuntime}
-        setMaxRuntime={(value) => {
-          setMaxRuntime(value);
+        ratingMax={ratingMax}
+        setRatingMax={(value) => {
+          setRatingMax(value);
           setPage(1);
         }}
-        year={year}
-        setYear={(value) => {
-          setYear(value);
+        runtimeMin={runtimeMin}
+        setRuntimeMin={(value) => {
+          setRuntimeMin(value);
+          setPage(1);
+        }}
+        runtimeMax={runtimeMax}
+        setRuntimeMax={(value) => {
+          setRuntimeMax(value);
+          setPage(1);
+        }}
+        yearMin={yearMin}
+        setYearMin={(value) => {
+          setYearMin(value);
+          setPage(1);
+        }}
+        yearMax={yearMax}
+        setYearMax={(value) => {
+          setYearMax(value);
           setPage(1);
         }}
       />

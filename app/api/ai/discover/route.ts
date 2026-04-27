@@ -127,7 +127,7 @@ async function askGeminiForFilters(message: string, region: string, providers: P
 Request: ${message}
 Default region: ${region}
 Provider ids: ${providerHints}
-Allowed filter keys: sort_by, with_genres, year, vote_average.gte, vote_count.gte, with_runtime.gte, with_runtime.lte, watch_region, with_watch_providers, with_watch_monetization_types.
+Allowed filter keys: sort_by, with_genres, year, primary_release_date.gte, primary_release_date.lte, vote_average.gte, vote_average.lte, vote_count.gte, with_runtime.gte, with_runtime.lte, watch_region, with_watch_providers, with_watch_monetization_types.
 Return shape: {"answer":"short helpful explanation","filters":{...},"followUps":["...","..."]}`;
 
   const response = await fetch(

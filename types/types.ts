@@ -85,9 +85,12 @@ export type DiscoverFilters = {
     with_genres?: string;
     year?: string;
     "vote_average.gte"?: string;
+    "vote_average.lte"?: string;
     "vote_count.gte"?: string;
     "with_runtime.gte"?: string;
     "with_runtime.lte"?: string;
+    "primary_release_date.gte"?: string;
+    "primary_release_date.lte"?: string;
     watch_region?: string;
     with_watch_providers?: string;
     with_watch_monetization_types?: string;

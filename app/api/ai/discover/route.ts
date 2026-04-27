@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { tmdbServer } from "@/utils/tmdb/server";
+import { enrichMoviesWithRuntime, tmdbServer } from "@/utils/tmdb/server";
 import { Provider } from "@/types/types";
 
 type AiFilters = Record<string, string>;
@@ -179,7 +179,7 @@ export async function POST(req: Request) {
     };
 
     const params = new URLSearchParams(filters);
-    const movies = await tmdbServer.discoverMovies(params);
+    const movies = await enrichMoviesWithRuntime(await tmdbServer.discoverMovies(params));
 
     return NextResponse.json({
       answer:

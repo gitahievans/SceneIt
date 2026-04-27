@@ -102,7 +102,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
           )}
 
           {movie.providers && movie.providers.length > 0 && (
-            <div className="absolute bottom-2 left-2 right-2 flex flex-wrap gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+            <div className="absolute bottom-2 left-2 right-2 hidden flex-wrap gap-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100 sm:flex">
               {movie.providers.slice(0, 2).map((provider) => (
                 <ProviderBadge key={provider.provider_id} provider={provider} />
               ))}
@@ -133,6 +133,14 @@ const MovieCard = ({ movie }: MovieCardProps) => {
                 >
                   {genre}
                 </span>
+              ))}
+            </div>
+          )}
+
+          {movie.providers && movie.providers.length > 0 && (
+            <div className="flex flex-wrap gap-1 border-t border-gray-200 pt-2 dark:border-gray-700">
+              {movie.providers.slice(0, 2).map((provider) => (
+                <ProviderBadge key={provider.provider_id} provider={provider} />
               ))}
             </div>
           )}

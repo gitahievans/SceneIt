@@ -67,6 +67,36 @@ export function toSearchParams(
   return params;
 }
 
+export async function enrichMoviesWithRuntime(data: MovieResponse): Promise<MovieResponse> {
+  const movies = data.results || [];
+
+  const runtimes = await Promise.all(
+    movies.map(async (movie) => {
+      if (movie.runtime) return [movie.id, movie.runtime] as const;
+
+      try {
+        const details = await fetchTmdb<{ runtime?: number | null }>(
+          `/movie/${movie.id}`,
+          new URLSearchParams({ language: "en-US" })
+        );
+        return [movie.id, details.runtime || null] as const;
+      } catch {
+        return [movie.id, null] as const;
+      }
+    })
+  );
+
+  const runtimeByMovieId = new Map(runtimes);
+
+  return {
+    ...data,
+    results: movies.map((movie) => ({
+      ...movie,
+      runtime: runtimeByMovieId.get(movie.id) || movie.runtime || null,
+    })),
+  };
+}
+
 export const tmdbServer = {
   discoverMovies: (params: URLSearchParams) => fetchTmdb<MovieResponse>("/discover/movie", params),
   genres: () => fetchTmdb("/genre/movie/list", new URLSearchParams({ language: "en-US" })),

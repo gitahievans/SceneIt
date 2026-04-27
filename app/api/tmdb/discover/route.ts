@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { toSearchParams, tmdbServer } from "@/utils/tmdb/server";
+import { enrichMoviesWithRuntime, toSearchParams, tmdbServer } from "@/utils/tmdb/server";
 
 const DISCOVER_KEYS = [
   "page",
@@ -33,7 +33,7 @@ export async function GET(req: Request) {
     });
 
     const data = await tmdbServer.discoverMovies(params);
-    return NextResponse.json(data);
+    return NextResponse.json(await enrichMoviesWithRuntime(data));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to discover movies";
     return NextResponse.json({ error: message }, { status: 500 });

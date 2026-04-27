@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { tmdbServer } from "@/utils/tmdb/server";
+import { enrichMoviesWithRuntime, tmdbServer } from "@/utils/tmdb/server";
 
 export async function GET(req: Request) {
   try {
@@ -12,7 +12,7 @@ export async function GET(req: Request) {
     }
 
     const data = await tmdbServer.searchMovies(query, page);
-    return NextResponse.json(data);
+    return NextResponse.json(await enrichMoviesWithRuntime(data));
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to search movies";
     return NextResponse.json({ error: message }, { status: 500 });

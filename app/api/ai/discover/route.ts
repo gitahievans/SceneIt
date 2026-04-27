@@ -1,8 +1,26 @@
 import { NextResponse } from "next/server";
 import { enrichMoviesWithRuntime, tmdbServer } from "@/utils/tmdb/server";
-import { Provider } from "@/types/types";
+import { MovieItem, Provider } from "@/types/types";
 
 type AiFilters = Record<string, string>;
+
+type SearchPlan = {
+  mode: "title" | "discover";
+  title?: string;
+  filters: AiFilters;
+  constraints: {
+    ratingMin?: number;
+    ratingMax?: number;
+    runtimeMin?: number;
+    runtimeMax?: number;
+    yearMin?: number;
+    yearMax?: number;
+    providerId?: string;
+    providerName?: string;
+    genres?: number[];
+  };
+  labels: string[];
+};
 
 const PROVIDER_ALIASES: Record<string, string[]> = {
   netflix: ["netflix"],
@@ -37,21 +55,32 @@ const GENRE_HINTS: Record<string, number> = {
   western: 37,
 };
 
-const RUNTIME_HINTS: Array<[RegExp, string]> = [
-  [/under\s+(\d+)\s*(minutes|min|m|hours|hrs|h)?/i, "lte"],
-  [/less than\s+(\d+)\s*(minutes|min|m|hours|hrs|h)?/i, "lte"],
-  [/over\s+(\d+)\s*(minutes|min|m|hours|hrs|h)?/i, "gte"],
-  [/more than\s+(\d+)\s*(minutes|min|m|hours|hrs|h)?/i, "gte"],
+const STOP_WORDS = [
+  "give",
+  "show",
+  "find",
+  "me",
+  "movie",
+  "movies",
+  "film",
+  "films",
+  "please",
+  "recommend",
+  "recommendation",
+  "recommendations",
+  "watch",
+  "rated",
+  "rating",
 ];
 
 function normalizeRuntime(value: string, unit?: string) {
   const number = Number(value);
-  if (!Number.isFinite(number)) return "";
-  if (unit && /h|hour|hrs/i.test(unit)) return String(number * 60);
-  return String(number);
+  if (!Number.isFinite(number)) return undefined;
+  if (unit && /h|hour|hrs/i.test(unit)) return number * 60;
+  return number;
 }
 
-function findProviderId(message: string, providers: Provider[]) {
+function findProvider(message: string, providers: Provider[]) {
   const lower = message.toLowerCase();
 
   for (const [canonical, aliases] of Object.entries(PROVIDER_ALIASES)) {
@@ -61,102 +90,259 @@ function findProviderId(message: string, providers: Provider[]) {
       provider.provider_name.toLowerCase().includes(canonical)
     );
 
-    if (match) return String(match.provider_id);
+    if (match) return match;
   }
 
-  return "";
+  return providers.find((provider) => lower.includes(provider.provider_name.toLowerCase()));
 }
 
-function inferFilters(message: string, providers: Provider[], region: string): AiFilters {
+function parseRating(message: string) {
   const lower = message.toLowerCase();
-  const filters: AiFilters = {
-    page: "1",
-    sort_by: "popularity.desc",
-    watch_region: region,
-    "vote_count.gte": "100",
-  };
+  const between = lower.match(/(?:rated|rating|ratings)?\s*(?:between|from)?\s*(\d+(?:\.\d+)?)\s*(?:and|to|-)\s*(\d+(?:\.\d+)?)/);
+  if (between) {
+    return {
+      min: Math.min(Number(between[1]), Number(between[2])),
+      max: Math.max(Number(between[1]), Number(between[2])),
+    };
+  }
 
+  const above = lower.match(/(?:rated|rating|ratings)?.*?(?:above|over|greater than|at least)\s*(\d+(?:\.\d+)?)/);
+  if (above) return { min: Number(above[1]) };
+
+  const below = lower.match(/(?:rated|rating|ratings)?.*?(?:below|under|less than|at most)\s*(\d+(?:\.\d+)?)/);
+  if (below) return { max: Number(below[1]) };
+
+  const exact = lower.match(/(?:rated|rating|ratings)\s*(?:exactly|of)?\s*(\d+(?:\.\d+)?)/);
+  if (exact) return { min: Number(exact[1]), max: Number(exact[1]) };
+
+  return {};
+}
+
+function parseYears(message: string) {
+  const lower = message.toLowerCase();
+  const between = lower.match(/(?:between|from)\s*(19\d{2}|20\d{2})\s*(?:and|to|-)\s*(19\d{2}|20\d{2})/);
+  if (between) {
+    return {
+      min: Math.min(Number(between[1]), Number(between[2])),
+      max: Math.max(Number(between[1]), Number(between[2])),
+    };
+  }
+
+  const onwards = lower.match(/(?:from|since)\s*(19\d{2}|20\d{2})\s*(?:onwards| onward| and later| or later)?/);
+  if (onwards) return { min: Number(onwards[1]) };
+
+  const after = lower.match(/(?:after|later than)\s*(19\d{2}|20\d{2})/);
+  if (after) return { min: Number(after[1]) + 1 };
+
+  const before = lower.match(/(?:before|earlier than)\s*(19\d{2}|20\d{2})/);
+  if (before) return { max: Number(before[1]) - 1 };
+
+  const exact = lower.match(/\b(19\d{2}|20\d{2})\b/);
+  if (exact) return { min: Number(exact[1]), max: Number(exact[1]) };
+
+  return {};
+}
+
+function parseRuntime(message: string) {
+  const lower = message.toLowerCase();
+  const between = lower.match(/(?:between|from)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)?\s*(?:and|to|-)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)?/);
+  if (between && /runtime|hour|minute|min|\bm\b|\bh\b/.test(lower)) {
+    const min = normalizeRuntime(between[1], between[2]);
+    const max = normalizeRuntime(between[3], between[4] || between[2]);
+    return { min, max };
+  }
+
+  const under = lower.match(/(?:under|less than|at most)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)/);
+  if (under) return { max: normalizeRuntime(under[1], under[2]) };
+
+  const over = lower.match(/(?:over|more than|at least)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)/);
+  if (over) return { min: normalizeRuntime(over[1], over[2]) };
+
+  return {};
+}
+
+function inferTitle(message: string, hasStructuredFilters: boolean) {
+  const lower = message.toLowerCase();
+  const quoted = message.match(/["']([^"']+)["']/);
+  if (quoted?.[1]) return quoted[1].trim();
+
+  const like = lower.match(/(?:like|similar to)\s+(.+)$/);
+  if (like?.[1]) return like[1].trim();
+
+  const direct = lower.match(/^(?:give|show|find|get)\s+(?:me\s+)?(.+)$/);
+  if (!direct?.[1] || hasStructuredFilters) return undefined;
+
+  const cleaned = direct[1]
+    .split(/\s+/)
+    .filter((word) => !STOP_WORDS.includes(word))
+    .join(" ")
+    .trim();
+
+  return cleaned || undefined;
+}
+
+function createPlan(message: string, providers: Provider[], region: string): SearchPlan {
+  const lower = message.toLowerCase();
+  const provider = findProvider(message, providers);
+  const rating = parseRating(message);
+  const years = parseYears(message);
+  const runtime = parseRuntime(message);
   const genres = Object.entries(GENRE_HINTS)
     .filter(([name]) => lower.includes(name))
     .map(([, id]) => id);
 
-  if (genres.length > 0) filters.with_genres = [...new Set(genres)].join("|");
-
-  for (const [pattern, direction] of RUNTIME_HINTS) {
-    const match = lower.match(pattern);
-    if (match) {
-      filters[`with_runtime.${direction}`] = normalizeRuntime(match[1], match[2]);
-      break;
-    }
-  }
-
-  const year = lower.match(/\b(19\d{2}|20\d{2})\b/);
-  if (year) filters.year = year[1];
-
-  if (lower.includes("highly rated") || lower.includes("best rated")) {
-    filters.sort_by = "vote_average.desc";
-    filters["vote_count.gte"] = "300";
-    filters["vote_average.gte"] = "7";
-  }
-
-  if (lower.includes("hidden gem") || lower.includes("underrated")) {
-    filters.sort_by = "vote_average.desc";
-    filters["vote_count.gte"] = "50";
-    filters["vote_average.gte"] = "7";
-  }
-
-  const providerId = findProviderId(message, providers);
-  if (providerId) {
-    filters.with_watch_providers = providerId;
-    filters.with_watch_monetization_types = "flatrate";
-  }
-
-  return filters;
-}
-
-async function askGeminiForFilters(message: string, region: string, providers: Provider[]) {
-  const geminiKey = process.env.GEMINI_API_KEY;
-  if (!geminiKey) return null;
-
-  const providerHints = providers
-    .slice(0, 30)
-    .map((provider) => `${provider.provider_name}:${provider.provider_id}`)
-    .join(", ");
-
-  const prompt = `Convert this movie discovery request into compact JSON only.
-Request: ${message}
-Default region: ${region}
-Provider ids: ${providerHints}
-Allowed filter keys: sort_by, with_genres, year, primary_release_date.gte, primary_release_date.lte, vote_average.gte, vote_average.lte, vote_count.gte, with_runtime.gte, with_runtime.lte, watch_region, with_watch_providers, with_watch_monetization_types.
-Return shape: {"answer":"short helpful explanation","filters":{...},"followUps":["...","..."]}`;
-
-  const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: { temperature: 0.2, maxOutputTokens: 700 },
-      }),
-    }
+  const hasStructuredFilters = Boolean(
+    provider ||
+      rating.min !== undefined ||
+      rating.max !== undefined ||
+      years.min !== undefined ||
+      years.max !== undefined ||
+      runtime.min !== undefined ||
+      runtime.max !== undefined ||
+      genres.length
   );
 
-  if (!response.ok) return null;
+  const title = inferTitle(message, hasStructuredFilters);
+  const filters: AiFilters = {
+    page: "1",
+    sort_by: rating.min !== undefined || rating.max !== undefined ? "vote_average.desc" : "popularity.desc",
+    watch_region: region,
+  };
+  const labels: string[] = [];
 
-  const data = await response.json();
-  const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) return null;
-
-  try {
-    return JSON.parse(text.replace(/```json|```/g, "").trim()) as {
-      answer?: string;
-      filters?: AiFilters;
-      followUps?: string[];
-    };
-  } catch {
-    return null;
+  if (genres.length) {
+    filters.with_genres = [...new Set(genres)].join("|");
+    labels.push(`Genres: ${genres.length} selected`);
   }
+
+  if (rating.min !== undefined) {
+    filters["vote_average.gte"] = String(rating.min);
+    labels.push(`Rating from ${rating.min}`);
+  }
+  if (rating.max !== undefined) {
+    filters["vote_average.lte"] = String(rating.max);
+    labels.push(`Rating up to ${rating.max}`);
+  }
+
+  if (runtime.min !== undefined) {
+    filters["with_runtime.gte"] = String(runtime.min);
+    labels.push(`Runtime from ${runtime.min} min`);
+  }
+  if (runtime.max !== undefined) {
+    filters["with_runtime.lte"] = String(runtime.max);
+    labels.push(`Runtime up to ${runtime.max} min`);
+  }
+
+  if (years.min !== undefined) {
+    filters["primary_release_date.gte"] = `${years.min}-01-01`;
+    labels.push(`Released from ${years.min}`);
+  }
+  if (years.max !== undefined) {
+    filters["primary_release_date.lte"] = `${years.max}-12-31`;
+    labels.push(`Released through ${years.max}`);
+  }
+
+  if (provider) {
+    filters.with_watch_providers = String(provider.provider_id);
+    filters.with_watch_monetization_types = "flatrate";
+    labels.push(`Provider: ${provider.provider_name}`);
+  }
+
+  if (title) labels.push(`Title search: ${title}`);
+  labels.push(`Region: ${region}`);
+
+  return {
+    mode: title ? "title" : "discover",
+    title,
+    filters,
+    constraints: {
+      ratingMin: rating.min,
+      ratingMax: rating.max,
+      runtimeMin: runtime.min,
+      runtimeMax: runtime.max,
+      yearMin: years.min,
+      yearMax: years.max,
+      providerId: provider ? String(provider.provider_id) : undefined,
+      providerName: provider?.provider_name,
+      genres: [...new Set(genres)],
+    },
+    labels,
+  };
+}
+
+function movieYear(movie: MovieItem) {
+  return movie.release_date ? new Date(movie.release_date).getFullYear() : undefined;
+}
+
+async function movieHasProvider(movieId: number, providerId: string, region: string) {
+  try {
+    const data = await tmdbServer.movieWatchProviders(String(movieId));
+    const options = data.results?.[region];
+    const providers = [
+      ...(options?.flatrate || []),
+      ...(options?.free || []),
+      ...(options?.ads || []),
+      ...(options?.rent || []),
+      ...(options?.buy || []),
+    ];
+    return providers.some((provider) => String(provider.provider_id) === providerId);
+  } catch {
+    return false;
+  }
+}
+
+async function enforcePlan(movies: MovieItem[], plan: SearchPlan, region: string) {
+  const filtered: MovieItem[] = [];
+
+  for (const movie of movies) {
+    const year = movieYear(movie);
+
+    if (plan.constraints.ratingMin !== undefined && movie.vote_average < plan.constraints.ratingMin) continue;
+    if (plan.constraints.ratingMax !== undefined && movie.vote_average > plan.constraints.ratingMax) continue;
+    if (plan.constraints.runtimeMin !== undefined && (!movie.runtime || movie.runtime < plan.constraints.runtimeMin)) continue;
+    if (plan.constraints.runtimeMax !== undefined && (!movie.runtime || movie.runtime > plan.constraints.runtimeMax)) continue;
+    if (plan.constraints.yearMin !== undefined && (!year || year < plan.constraints.yearMin)) continue;
+    if (plan.constraints.yearMax !== undefined && (!year || year > plan.constraints.yearMax)) continue;
+    if (
+      plan.constraints.genres?.length &&
+      !plan.constraints.genres.some((genreId) => movie.genre_ids?.includes(genreId))
+    ) {
+      continue;
+    }
+    if (
+      plan.constraints.providerId &&
+      !(await movieHasProvider(movie.id, plan.constraints.providerId, region))
+    ) {
+      continue;
+    }
+
+    filtered.push(movie);
+  }
+
+  return filtered;
+}
+
+function rankTitleResults(movies: MovieItem[], title: string) {
+  const query = title.toLowerCase();
+  return [...movies].sort((a, b) => {
+    const aTitle = a.title.toLowerCase();
+    const bTitle = b.title.toLowerCase();
+    const aScore = aTitle === query ? 3 : aTitle.startsWith(query) ? 2 : aTitle.includes(query) ? 1 : 0;
+    const bScore = bTitle === query ? 3 : bTitle.startsWith(query) ? 2 : bTitle.includes(query) ? 1 : 0;
+    return bScore - aScore || (b.popularity || 0) - (a.popularity || 0);
+  });
+}
+
+function answerFor(plan: SearchPlan, count: number) {
+  if (count === 0) {
+    return `I could not find movies that match every constraint: ${plan.labels.join(", ")}. Try widening one filter.`;
+  }
+
+  if (plan.mode === "title") {
+    return `I searched by title and ranked the closest matches first. Applied: ${plan.labels.join(", ")}.`;
+  }
+
+  return `I applied your constraints strictly and returned ${count} matching movie${count === 1 ? "" : "s"}.`;
 }
 
 export async function POST(req: Request) {
@@ -170,29 +356,34 @@ export async function POST(req: Request) {
     }
 
     const providers = (await tmdbServer.movieProviders(region)).results || [];
-    const ai = await askGeminiForFilters(message, region, providers);
-    const filters = {
-      ...inferFilters(message, providers, region),
-      ...(ai?.filters || {}),
-      page: "1",
-      watch_region: region,
-    };
+    const plan = createPlan(message, providers, region);
 
-    const params = new URLSearchParams(filters);
-    const movies = await enrichMoviesWithRuntime(await tmdbServer.discoverMovies(params));
+    const rawMovies =
+      plan.mode === "title" && plan.title
+        ? await tmdbServer.searchMovies(plan.title, "1")
+        : await tmdbServer.discoverMovies(new URLSearchParams(plan.filters));
+
+    const enriched = await enrichMoviesWithRuntime(rawMovies);
+    const ranked = plan.mode === "title" && plan.title
+      ? rankTitleResults(enriched.results || [], plan.title)
+      : enriched.results || [];
+    const movies = await enforcePlan(ranked, plan, region);
 
     return NextResponse.json({
-      answer:
-        ai?.answer ||
-        "I matched your request to TMDB discovery filters and pulled movies that should fit.",
-      filters,
-      movies: movies.results || [],
-      total_pages: movies.total_pages,
-      total_results: movies.total_results,
-      followUps: ai?.followUps || [
-        "Show me lighter options",
-        "Only show highly rated movies",
-        "Find hidden gems like these",
+      answer: answerFor(plan, movies.length),
+      filters: plan.filters,
+      plan: {
+        mode: plan.mode,
+        title: plan.title,
+        labels: plan.labels,
+      },
+      movies,
+      total_pages: rawMovies.total_pages,
+      total_results: movies.length,
+      followUps: [
+        "Widen the rating range",
+        "Show only recent movies",
+        "Find something similar to the first result",
       ],
     });
   } catch (error) {

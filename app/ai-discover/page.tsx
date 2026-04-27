@@ -8,6 +8,11 @@ import { useState } from "react";
 type AiDiscoveryResponse = {
   answer: string;
   filters: Record<string, string>;
+  plan?: {
+    mode: string;
+    title?: string;
+    labels: string[];
+  };
   movies: MovieItem[];
   followUps?: string[];
   total_results?: number;
@@ -122,17 +127,34 @@ export default function AiDiscoverPage() {
                 <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-300">
                   {isLoading ? "Matching your request to movie filters..." : result?.answer}
                 </p>
-                {result?.filters && (
+                {result?.plan?.labels && (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {Object.entries(result.filters).map(([key, value]) => (
+                    {result.plan.labels.map((label) => (
                       <span
-                        key={key}
+                        key={label}
                         className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
                       >
-                        {key}: {value}
+                        {label}
                       </span>
                     ))}
                   </div>
+                )}
+                {result?.filters && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400">
+                      Raw filters
+                    </summary>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {Object.entries(result.filters).map(([key, value]) => (
+                        <span
+                          key={key}
+                          className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                        >
+                          {key}: {value}
+                        </span>
+                      ))}
+                    </div>
+                  </details>
                 )}
               </div>
             </div>

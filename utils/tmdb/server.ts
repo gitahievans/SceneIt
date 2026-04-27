@@ -120,6 +120,20 @@ export const tmdbServer = {
       "/search/movie",
       new URLSearchParams({ language: "en-US", query, page })
     ),
+  searchTv: (query: string, page = "1") =>
+    fetchTmdb<{ results: Array<{ id: number; name: string; overview: string; first_air_date?: string; popularity?: number }> }>(
+      "/search/tv",
+      new URLSearchParams({ language: "en-US", query, page })
+    ),
+  tvDetails: (id: string) =>
+    fetchTmdb(`/tv/${id}`, new URLSearchParams({ language: "en-US" })),
+  tvSeason: (id: string, seasonNumber: number) =>
+    fetchTmdb(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" })),
+  tvEpisode: (id: string, seasonNumber: number, episodeNumber: number) =>
+    fetchTmdb(
+      `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`,
+      new URLSearchParams({ language: "en-US" })
+    ),
   searchKeyword: (query: string) =>
     fetchTmdb<{ results: { id: number; name: string }[] }>(
       "/search/keyword",

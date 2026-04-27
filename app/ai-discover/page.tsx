@@ -6,14 +6,15 @@ import { Bot, Loader2, Send, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 type AiDiscoveryResponse = {
+  mode?: "discover" | "explain";
   answer: string;
-  filters: Record<string, string>;
+  filters?: Record<string, string>;
   plan?: {
     mode: string;
     title?: string;
     labels: string[];
   };
-  movies: MovieItem[];
+  movies?: MovieItem[];
   followUps?: string[];
   total_results?: number;
 };
@@ -89,7 +90,7 @@ export default function AiDiscoverPage() {
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
           >
             {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
-            Discover
+            Ask
           </button>
         </div>
 
@@ -123,8 +124,10 @@ export default function AiDiscoverPage() {
                 <Bot size={17} />
               </div>
               <div>
-                <h2 className="font-semibold text-gray-950 dark:text-white">Recommendation logic</h2>
-                <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-300">
+                <h2 className="font-semibold text-gray-950 dark:text-white">
+                  {result?.mode === "explain" ? "SceneIt explanation" : "Recommendation logic"}
+                </h2>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-600 dark:text-gray-300">
                   {isLoading ? "Matching your request to movie filters..." : result?.answer}
                 </p>
                 {result?.plan?.labels && (
@@ -160,7 +163,9 @@ export default function AiDiscoverPage() {
             </div>
           </div>
 
-          <MovieGrid movies={result?.movies || []} isLoading={isLoading} />
+          {result?.mode !== "explain" && (
+            <MovieGrid movies={result?.movies || []} isLoading={isLoading} />
+          )}
 
           {result?.followUps && (
             <div className="flex flex-wrap gap-2">

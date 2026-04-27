@@ -25,6 +25,46 @@ type SearchPlan = {
   labels: string[];
 };
 
+type ExplanationPlan = {
+  mode: "explain";
+  mediaType: "movie" | "tv" | "unknown";
+  title: string;
+  seasonNumber?: number;
+  episodeNumber?: number;
+  focus: "recap" | "ending" | "summary" | "specific";
+  labels: string[];
+};
+
+type TvSearchResult = {
+  id: number;
+  name: string;
+  overview: string;
+  first_air_date?: string;
+  popularity?: number;
+};
+
+type MovieDetails = MovieItem & {
+  tagline?: string;
+  runtime?: number | null;
+};
+
+type TvDetails = {
+  id: number;
+  name: string;
+  overview: string;
+  first_air_date?: string;
+  number_of_seasons?: number;
+  seasons?: Array<{ season_number: number; name: string; overview?: string; episode_count?: number }>;
+};
+
+type TvSeason = {
+  id: number;
+  name: string;
+  overview?: string;
+  season_number: number;
+  episodes?: Array<{ episode_number: number; name: string; overview: string; air_date?: string }>;
+};
+
 const PROVIDER_ALIASES: Record<string, string[]> = {
   netflix: ["netflix"],
   "apple tv": ["apple tv", "apple tv plus", "apple tv+"],
@@ -85,6 +125,22 @@ const STOP_WORDS = [
   "rating",
 ];
 
+const EXPLANATION_PATTERNS = [
+  /what happens/i,
+  /what happened/i,
+  /how did .* end/i,
+  /ending/i,
+  /recap/i,
+  /summari[sz]e/i,
+  /breakdown/i,
+  /explain/i,
+  /who killed/i,
+  /why did/i,
+  /season\s+\d+/i,
+  /episode\s+\d+/i,
+  /part\s+(one|two|1|2|i|ii)/i,
+];
+
 function normalizeRuntime(value: string, unit?: string) {
   const number = Number(value);
   if (!Number.isFinite(number)) return undefined;
@@ -111,6 +167,78 @@ function findProvider(message: string, providers: Provider[]) {
 function findMood(message: string) {
   const lower = message.toLowerCase();
   return MOOD_HINTS.find((mood) => mood.triggers.some((trigger) => lower.includes(trigger)));
+}
+
+function isExplanationRequest(message: string) {
+  return EXPLANATION_PATTERNS.some((pattern) => pattern.test(message));
+}
+
+function parseNumberWord(value?: string) {
+  if (!value) return undefined;
+  const normalized = value.toLowerCase();
+  if (normalized === "one" || normalized === "i") return 1;
+  if (normalized === "two" || normalized === "ii") return 2;
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : undefined;
+}
+
+function cleanExplanationTitle(message: string) {
+  let title = message
+    .replace(/\?/g, "")
+    .replace(/what happens in/i, "")
+    .replace(/what happened in/i, "")
+    .replace(/how did/i, "")
+    .replace(/end$/i, "")
+    .replace(/recap/i, "")
+    .replace(/summari[sz]e/i, "")
+    .replace(/explain/i, "")
+    .replace(/ending/i, "")
+    .replace(/breakdown/i, "")
+    .replace(/season\s+\d+/i, "")
+    .replace(/episode\s+\d+/i, "")
+    .replace(/part\s+(one|two|1|2|i|ii)/i, "")
+    .replace(/\bof\b/gi, "")
+    .replace(/\bin\b/gi, "")
+    .trim();
+
+  title = title.replace(/\s+/g, " ");
+  title = title.replace(/^(the|a|an)\s+/i, "");
+  return title || message.trim();
+}
+
+function createExplanationPlan(message: string): ExplanationPlan | null {
+  if (!isExplanationRequest(message)) return null;
+
+  const lower = message.toLowerCase();
+  const seasonMatch = lower.match(/season\s+(\d+)/);
+  const episodeMatch = lower.match(/episode\s+(\d+)/);
+  const partMatch = lower.match(/part\s+(one|two|1|2|i|ii)/);
+  const seasonNumber = seasonMatch ? Number(seasonMatch[1]) : parseNumberWord(partMatch?.[1]);
+  const episodeNumber = episodeMatch ? Number(episodeMatch[1]) : undefined;
+  const focus = /end|ending/i.test(message)
+    ? "ending"
+    : /recap|what happened|what happens|before/i.test(message)
+      ? "recap"
+      : /why|who|specific/i.test(message)
+        ? "specific"
+        : "summary";
+  const title = cleanExplanationTitle(message);
+
+  return {
+    mode: "explain",
+    mediaType: seasonNumber || episodeNumber ? "tv" : "unknown",
+    title,
+    seasonNumber,
+    episodeNumber,
+    focus,
+    labels: [
+      `Mode: Explanation`,
+      `Title: ${title}`,
+      seasonNumber ? `Season: ${seasonNumber}` : "",
+      episodeNumber ? `Episode: ${episodeNumber}` : "",
+      `Focus: ${focus}`,
+    ].filter(Boolean),
+  };
 }
 
 async function resolveKeywordIds(keywords: string[]) {
@@ -431,6 +559,145 @@ function answerFor(plan: SearchPlan, count: number) {
   return `I applied your constraints strictly and returned ${count} matching movie${count === 1 ? "" : "s"}.`;
 }
 
+function rankTvResults(results: TvSearchResult[], title: string) {
+  const query = title.toLowerCase();
+  return [...results].sort((a, b) => {
+    const aName = a.name.toLowerCase();
+    const bName = b.name.toLowerCase();
+    const aScore = aName === query ? 3 : aName.startsWith(query) ? 2 : aName.includes(query) ? 1 : 0;
+    const bScore = bName === query ? 3 : bName.startsWith(query) ? 2 : bName.includes(query) ? 1 : 0;
+    return bScore - aScore || (b.popularity || 0) - (a.popularity || 0);
+  });
+}
+
+async function buildExplanationContext(plan: ExplanationPlan) {
+  const [tvSearch, movieSearch] = await Promise.all([
+    tmdbServer.searchTv(plan.title, "1").catch(() => ({ results: [] as TvSearchResult[] })),
+    tmdbServer.searchMovies(plan.title, "1").catch(() => ({ results: [] })),
+  ]);
+
+  const tvMatch = rankTvResults(tvSearch.results || [], plan.title)[0];
+  const movieMatch = rankTitleResults(movieSearch.results || [], plan.title)[0];
+  const useTv = plan.mediaType === "tv" || Boolean(plan.seasonNumber || plan.episodeNumber) || Boolean(tvMatch && !movieMatch);
+
+  if (useTv && tvMatch) {
+    const details = await tmdbServer.tvDetails(String(tvMatch.id)) as TvDetails;
+    const seasonNumber = plan.seasonNumber || 1;
+    const season = await tmdbServer.tvSeason(String(tvMatch.id), seasonNumber).catch(() => null) as TvSeason | null;
+    const episode = plan.episodeNumber && season
+      ? await tmdbServer.tvEpisode(String(tvMatch.id), seasonNumber, plan.episodeNumber).catch(() => null)
+      : null;
+
+    return {
+      mediaType: "tv" as const,
+      matchedTitle: details.name || tvMatch.name,
+      details,
+      season,
+      episode,
+      sourceText: [
+        `TV Show: ${details.name}`,
+        `Show overview: ${details.overview || "N/A"}`,
+        season ? `Season ${season.season_number}: ${season.name}` : "",
+        season?.overview ? `Season overview: ${season.overview}` : "",
+        episode ? `Episode ${plan.episodeNumber}: ${(episode as { name?: string }).name || ""}` : "",
+        episode ? `Episode overview: ${(episode as { overview?: string }).overview || "N/A"}` : "",
+        season?.episodes?.length
+          ? `Episode summaries:\n${season.episodes
+              .map((item) => `${item.episode_number}. ${item.name}: ${item.overview || "No overview."}`)
+              .join("\n")}`
+          : "",
+      ].filter(Boolean).join("\n\n"),
+    };
+  }
+
+  if (movieMatch) {
+    const details = await tmdbServer.movieDetails(String(movieMatch.id)) as MovieDetails;
+    return {
+      mediaType: "movie" as const,
+      matchedTitle: details.title || movieMatch.title,
+      details,
+      sourceText: [
+        `Movie: ${details.title}`,
+        details.release_date ? `Release date: ${details.release_date}` : "",
+        details.runtime ? `Runtime: ${details.runtime} minutes` : "",
+        details.tagline ? `Tagline: ${details.tagline}` : "",
+        `Overview: ${details.overview || "N/A"}`,
+      ].filter(Boolean).join("\n\n"),
+    };
+  }
+
+  return null;
+}
+
+async function generateExplanation(message: string, plan: ExplanationPlan, sourceText: string) {
+  const geminiKey = process.env.GEMINI_API_KEY;
+  if (!geminiKey) {
+    return `I found relevant TMDB metadata, but GEMINI_API_KEY is not configured, so I can only show the source summary:\n\n${sourceText}`;
+  }
+
+  const prompt = `You are SceneIt AI. Answer the user's movie/TV explanation question in clear, readable prose.
+User question: ${message}
+Focus: ${plan.focus}
+Use this TMDB metadata as grounding. If the metadata is thin, say so briefly and avoid inventing exact scene details.
+Spoilers are allowed because the user asked for what happens.
+
+TMDB metadata:
+${sourceText}
+
+Write a helpful recap/explanation with headings when useful. Do not recommend other titles unless asked.`;
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { temperature: 0.35, maxOutputTokens: 1400 },
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    return `I found the title, but could not generate the full recap right now. Here is the TMDB source summary:\n\n${sourceText}`;
+  }
+
+  const data = await response.json();
+  return data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ||
+    `I found the title, but could not generate the full recap right now. Here is the TMDB source summary:\n\n${sourceText}`;
+}
+
+async function handleExplanation(message: string, plan: ExplanationPlan) {
+  const context = await buildExplanationContext(plan);
+
+  if (!context) {
+    return NextResponse.json({
+      mode: "explain",
+      answer: `I could not confidently match "${plan.title}" to a movie or TV show on TMDB.`,
+      plan,
+      movies: [],
+    });
+  }
+
+  const answer = await generateExplanation(message, plan, context.sourceText);
+
+  return NextResponse.json({
+    mode: "explain",
+    answer,
+    plan: {
+      ...plan,
+      mediaType: context.mediaType,
+      matchedTitle: context.matchedTitle,
+      labels: [
+        ...plan.labels,
+        `Matched: ${context.matchedTitle}`,
+        `Source: TMDB metadata + AI synthesis`,
+      ],
+    },
+    movies: [],
+  });
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -440,6 +707,9 @@ export async function POST(req: Request) {
     if (!message) {
       return NextResponse.json({ error: "Message is required" }, { status: 400 });
     }
+
+    const explanationPlan = createExplanationPlan(message);
+    if (explanationPlan) return handleExplanation(message, explanationPlan);
 
     const providers = (await tmdbServer.movieProviders(region)).results || [];
     const plan = await createPlan(message, providers, region);

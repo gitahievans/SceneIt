@@ -2,7 +2,7 @@
 
 import MovieGrid from "@/components/Common/MovieGrid";
 import { MovieItem } from "@/types/types";
-import { Bot, Loader2, Send, Sparkles } from "lucide-react";
+import { Bot, FileText, Loader2, Send, Sparkles } from "lucide-react";
 import { useState } from "react";
 
 type AiDiscoveryResponse = {
@@ -23,7 +23,55 @@ const EXAMPLES = [
   "Find me tense thrillers under 2 hours on Netflix",
   "Recommend highly rated family movies for tonight",
   "Show me underrated sci-fi movies from the 2010s",
+  "What happens in season 2 of Breaking Bad?",
 ];
+
+function cleanInlineMarkdown(text: string) {
+  return text.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").trim();
+}
+
+function ExplanationText({ text }: { text: string }) {
+  const blocks = text
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+
+  return (
+    <article className="max-w-4xl space-y-5 text-[15px] leading-7 text-gray-700 dark:text-gray-200">
+      {blocks.map((block, index) => {
+        const heading = block.match(/^#{2,4}\s+(.+)$/) || block.match(/^(.+):$/);
+        if (heading) {
+          return (
+            <h3 key={index} className="pt-2 text-xl font-semibold tracking-normal text-gray-950 dark:text-white">
+              {cleanInlineMarkdown(heading[1])}
+            </h3>
+          );
+        }
+
+        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
+        const isList = lines.length > 1 && lines.every((line) => /^(\d+\.|-)\s+/.test(line));
+
+        if (isList) {
+          return (
+            <ol key={index} className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/40">
+              {lines.map((line) => (
+                <li key={line} className="ml-5 list-decimal pl-1">
+                  {cleanInlineMarkdown(line.replace(/^(\d+\.|-)\s+/, ""))}
+                </li>
+              ))}
+            </ol>
+          );
+        }
+
+        return (
+          <p key={index} className="max-w-4xl">
+            {cleanInlineMarkdown(block)}
+          </p>
+        );
+      })}
+    </article>
+  );
+}
 
 export default function AiDiscoverPage() {
   const [message, setMessage] = useState("");
@@ -65,11 +113,11 @@ export default function AiDiscoverPage() {
           </div>
           <div>
             <p className="text-sm font-medium text-orange-600 dark:text-orange-400">SceneIt AI</p>
-            <h1 className="text-3xl font-bold text-gray-950 dark:text-white">Ask For Movies, Get Real Cards</h1>
+            <h1 className="text-3xl font-bold text-gray-950 dark:text-white">Ask SceneIt What To Watch Or What Happened</h1>
           </div>
         </div>
         <p className="max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-          Ask naturally for what you want to watch. SceneIt turns your request into discovery filters and returns movies you can inspect, save, or open.
+          Search the way you think: find movies by mood, provider, rating, year, runtime, or title, then get real cards you can inspect and save. You can also ask for recaps, endings, season catch-ups, or story explanations when you need the plot brought back into focus.
         </p>
       </section>
 
@@ -118,20 +166,63 @@ export default function AiDiscoverPage() {
 
       {(isLoading || result) && (
         <section className="space-y-5">
-          <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
+          <div className={`rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 ${result?.mode === "explain" ? "p-0" : "p-5"}`}>
             <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300">
-                <Bot size={17} />
-              </div>
-              <div>
-                <h2 className="font-semibold text-gray-950 dark:text-white">
-                  {result?.mode === "explain" ? "SceneIt explanation" : "Recommendation logic"}
-                </h2>
-                <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-600 dark:text-gray-300">
-                  {isLoading ? "Matching your request to movie filters..." : result?.answer}
-                </p>
+              {result?.mode !== "explain" && (
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300">
+                  <Bot size={17} />
+                </div>
+              )}
+              <div className="w-full">
+                {result?.mode === "explain" ? (
+                  <div>
+                    <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-800">
+                      <div className="flex items-start gap-3">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300">
+                          <FileText size={20} />
+                        </div>
+                        <div>
+                          <p className="text-xs font-medium uppercase tracking-wide text-orange-600 dark:text-orange-400">
+                            SceneIt explanation
+                          </p>
+                          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-gray-950 dark:text-white">
+                            {result.plan?.title || "Explanation"}
+                          </h2>
+                        </div>
+                      </div>
+                      {result?.plan?.labels && (
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {result.plan.labels.map((label) => (
+                            <span
+                              key={label}
+                              className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="px-6 py-6">
+                      {isLoading ? (
+                        <p className="text-sm text-gray-600 dark:text-gray-300">Preparing a readable explanation...</p>
+                      ) : (
+                        <ExplanationText text={result?.answer || ""} />
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <h2 className="font-semibold text-gray-950 dark:text-white">Recommendation logic</h2>
+                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-600 dark:text-gray-300">
+                      {isLoading ? "Matching your request to movie filters..." : result?.answer}
+                    </p>
+                  </>
+                )}
+
                 {result?.plan?.labels && (
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <div className={`mt-3 flex flex-wrap gap-2 ${result.mode === "explain" ? "hidden" : ""}`}>
                     {result.plan.labels.map((label) => (
                       <span
                         key={label}
@@ -142,7 +233,7 @@ export default function AiDiscoverPage() {
                     ))}
                   </div>
                 )}
-                {result?.filters && (
+                {result?.filters && result.mode !== "explain" && (
                   <details className="mt-3">
                     <summary className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400">
                       Raw filters

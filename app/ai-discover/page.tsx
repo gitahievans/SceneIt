@@ -3,7 +3,7 @@
 import MovieGrid from "@/components/Common/MovieGrid";
 import { MovieItem } from "@/types/types";
 import { Bot, FileText, Loader2, Send, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type AiDiscoveryResponse = {
   mode?: "discover" | "explain";
@@ -18,6 +18,13 @@ type AiDiscoveryResponse = {
   followUps?: string[];
   total_results?: number;
 };
+
+type AiDiscoveryCache = {
+  message: string;
+  result: AiDiscoveryResponse;
+};
+
+const CACHE_KEY = "sceneit:ai-discover:last-result";
 
 const EXAMPLES = [
   "Find me tense thrillers under 2 hours on Netflix",
@@ -79,6 +86,37 @@ export default function AiDiscoverPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => {
+    try {
+      const cached = window.sessionStorage.getItem(CACHE_KEY);
+      if (!cached) return;
+
+      const parsed = JSON.parse(cached) as AiDiscoveryCache;
+      if (!parsed?.message || !parsed?.result) return;
+
+      setMessage(parsed.message);
+      setResult(parsed.result);
+    } catch {
+      window.sessionStorage.removeItem(CACHE_KEY);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!result) return;
+
+    try {
+      window.sessionStorage.setItem(
+        CACHE_KEY,
+        JSON.stringify({
+          message,
+          result,
+        } satisfies AiDiscoveryCache)
+      );
+    } catch {
+      // Storage can fail in private browsing or under quota pressure. The page still works without restore.
+    }
+  }, [message, result]);
+
   const ask = async (prompt = message) => {
     const value = prompt.trim();
     if (!value || isLoading) return;
@@ -97,6 +135,17 @@ export default function AiDiscoverPage() {
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Failed to discover movies");
       setResult(data);
+      try {
+        window.sessionStorage.setItem(
+          CACHE_KEY,
+          JSON.stringify({
+            message: value,
+            result: data,
+          } satisfies AiDiscoveryCache)
+        );
+      } catch {
+        // Restore is a convenience. A storage failure should not block showing fresh results.
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

@@ -120,4 +120,9 @@ export const tmdbServer = {
       "/search/movie",
       new URLSearchParams({ language: "en-US", query, page })
     ),
+  searchKeyword: (query: string) =>
+    fetchTmdb<{ results: { id: number; name: string }[] }>(
+      "/search/keyword",
+      new URLSearchParams({ query })
+    ),
 };

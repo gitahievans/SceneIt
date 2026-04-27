@@ -18,6 +18,8 @@ type SearchPlan = {
     providerId?: string;
     providerName?: string;
     genres?: number[];
+    keywordIds?: number[];
+    moodLabel?: string;
   };
   labels: string[];
 };
@@ -54,6 +56,74 @@ const GENRE_HINTS: Record<string, number> = {
   war: 10752,
   western: 37,
 };
+
+const MOOD_HINTS: Array<{
+  label: string;
+  triggers: string[];
+  genres: number[];
+  keywords: string[];
+}> = [
+  {
+    label: "Tense",
+    triggers: ["tense", "suspenseful", "suspense", "edge of my seat", "nail biting", "nerve wracking"],
+    genres: [53, 9648, 80],
+    keywords: ["suspense", "survival", "psychological thriller", "cat and mouse", "conspiracy"],
+  },
+  {
+    label: "Emotional",
+    triggers: ["make me cry", "cry", "tearjerker", "tear jerker", "emotional", "sad", "heartbreaking", "moving"],
+    genres: [18, 10749],
+    keywords: ["grief", "family relationships", "terminal illness", "loss of loved one", "bittersweet"],
+  },
+  {
+    label: "Feel-good",
+    triggers: ["feel good", "feel-good", "uplifting", "comfort movie", "cozy", "wholesome"],
+    genres: [35, 10751, 10749],
+    keywords: ["friendship", "coming of age", "small town", "hope", "family"],
+  },
+  {
+    label: "Mind-bending",
+    triggers: ["mind bending", "mind-bending", "trippy", "twist", "twists", "confusing", "puzzle"],
+    genres: [878, 9648, 53],
+    keywords: ["time travel", "parallel universe", "plot twist", "memory", "alternate reality"],
+  },
+  {
+    label: "Scary",
+    triggers: ["scary", "terrifying", "creepy", "horror", "frightening"],
+    genres: [27, 53],
+    keywords: ["haunted house", "supernatural", "possession", "serial killer", "ghost"],
+  },
+  {
+    label: "Dark",
+    triggers: ["dark", "disturbing", "bleak", "gritty", "violent"],
+    genres: [18, 53, 80],
+    keywords: ["revenge", "murder", "corruption", "trauma", "anti hero"],
+  },
+  {
+    label: "Funny",
+    triggers: ["funny", "hilarious", "laugh", "comedy", "comedies"],
+    genres: [35],
+    keywords: ["satire", "stand-up comedy", "buddy comedy", "romantic comedy", "parody"],
+  },
+  {
+    label: "Action-packed",
+    triggers: ["action packed", "action-packed", "exciting", "adrenaline", "explosive"],
+    genres: [28, 12, 53],
+    keywords: ["chase", "fight", "mission", "martial arts", "explosion"],
+  },
+  {
+    label: "Slow-burn",
+    triggers: ["slow burn", "slow-burn", "slow paced", "atmospheric"],
+    genres: [18, 53, 9648],
+    keywords: ["slow burn", "isolation", "psychological drama", "atmospheric", "character study"],
+  },
+  {
+    label: "Family-friendly",
+    triggers: ["family friendly", "family-friendly", "for kids", "with kids", "children"],
+    genres: [10751, 16, 12],
+    keywords: ["family", "friendship", "talking animal", "children", "adventure"],
+  },
+];
 
 const STOP_WORDS = [
   "give",
@@ -94,6 +164,27 @@ function findProvider(message: string, providers: Provider[]) {
   }
 
   return providers.find((provider) => lower.includes(provider.provider_name.toLowerCase()));
+}
+
+function findMood(message: string) {
+  const lower = message.toLowerCase();
+  return MOOD_HINTS.find((mood) => mood.triggers.some((trigger) => lower.includes(trigger)));
+}
+
+async function resolveKeywordIds(keywords: string[]) {
+  const results = await Promise.all(
+    keywords.map(async (keyword) => {
+      try {
+        const data = await tmdbServer.searchKeyword(keyword);
+        const exact = data.results.find((item) => item.name.toLowerCase() === keyword.toLowerCase());
+        return exact?.id || data.results[0]?.id || null;
+      } catch {
+        return null;
+      }
+    })
+  );
+
+  return [...new Set(results.filter((id): id is number => typeof id === "number"))];
 }
 
 function parseRating(message: string) {
@@ -195,13 +286,15 @@ function inferTitle(message: string, hasStructuredFilters: boolean) {
 function pageDepthForPlan(plan: SearchPlan) {
   const hasNarrowConstraints = Boolean(
     plan.constraints.providerId ||
+      plan.constraints.moodLabel ||
+      plan.constraints.keywordIds?.length ||
       plan.constraints.runtimeMin !== undefined ||
       plan.constraints.runtimeMax !== undefined ||
       plan.constraints.ratingMin !== undefined ||
       plan.constraints.ratingMax !== undefined
   );
 
-  return hasNarrowConstraints ? 3 : 1;
+  return hasNarrowConstraints ? 4 : 1;
 }
 
 async function fetchDiscoverPages(plan: SearchPlan, depth: number) {
@@ -221,18 +314,22 @@ async function fetchDiscoverPages(plan: SearchPlan, depth: number) {
   };
 }
 
-function createPlan(message: string, providers: Provider[], region: string): SearchPlan {
+async function createPlan(message: string, providers: Provider[], region: string): Promise<SearchPlan> {
   const lower = message.toLowerCase();
   const provider = findProvider(message, providers);
+  const mood = findMood(message);
   const rating = parseRating(message);
   const years = parseYears(message);
   const runtime = parseRuntime(message);
-  const genres = Object.entries(GENRE_HINTS)
+  const explicitGenres = Object.entries(GENRE_HINTS)
     .filter(([name]) => lower.includes(name))
     .map(([, id]) => id);
+  const genres = [...new Set([...explicitGenres, ...(mood?.genres || [])])];
+  const keywordIds = mood ? await resolveKeywordIds(mood.keywords) : [];
 
   const hasStructuredFilters = Boolean(
     provider ||
+      mood ||
       rating.min !== undefined ||
       rating.max !== undefined ||
       years.min !== undefined ||
@@ -251,8 +348,13 @@ function createPlan(message: string, providers: Provider[], region: string): Sea
   const labels: string[] = [];
 
   if (genres.length) {
-    filters.with_genres = [...new Set(genres)].join("|");
-    labels.push(`Genres: ${genres.length} selected`);
+    filters.with_genres = genres.join("|");
+    labels.push(mood ? `Mood: ${mood.label}` : `Genres: ${genres.length} selected`);
+  }
+
+  if (keywordIds.length) {
+    filters.with_keywords = keywordIds.join("|");
+    labels.push(`Themes: ${mood?.keywords.slice(0, 3).join(", ")}`);
   }
 
   if (rating.min !== undefined) {
@@ -304,7 +406,9 @@ function createPlan(message: string, providers: Provider[], region: string): Sea
       yearMax: years.max,
       providerId: provider ? String(provider.provider_id) : undefined,
       providerName: provider?.provider_name,
-      genres: [...new Set(genres)],
+      genres,
+      keywordIds,
+      moodLabel: mood?.label,
     },
     labels,
   };
@@ -396,7 +500,7 @@ export async function POST(req: Request) {
     }
 
     const providers = (await tmdbServer.movieProviders(region)).results || [];
-    const plan = createPlan(message, providers, region);
+    const plan = await createPlan(message, providers, region);
 
     const rawMovies =
       plan.mode === "title" && plan.title

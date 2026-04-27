@@ -76,7 +76,7 @@ const STOP_WORDS = [
 function normalizeRuntime(value: string, unit?: string) {
   const number = Number(value);
   if (!Number.isFinite(number)) return undefined;
-  if (unit && /h|hour|hrs/i.test(unit)) return number * 60;
+  if (unit && /^(h|hr|hrs|hour|hours)$/i.test(unit)) return number * 60;
   return number;
 }
 
@@ -98,6 +98,9 @@ function findProvider(message: string, providers: Provider[]) {
 
 function parseRating(message: string) {
   const lower = message.toLowerCase();
+  const followedByRuntimeUnit = (match: RegExpMatchArray | null) =>
+    Boolean(match?.[2] && /^(h|hr|hrs|hour|hours|m|min|minute|minutes)$/i.test(match[2]));
+
   const between = lower.match(/(?:rated|rating|ratings)?\s*(?:between|from)?\s*(\d+(?:\.\d+)?)\s*(?:and|to|-)\s*(\d+(?:\.\d+)?)/);
   if (between) {
     return {
@@ -106,11 +109,11 @@ function parseRating(message: string) {
     };
   }
 
-  const above = lower.match(/(?:rated|rating|ratings)?.*?(?:above|over|greater than|at least)\s*(\d+(?:\.\d+)?)/);
-  if (above) return { min: Number(above[1]) };
+  const above = lower.match(/(?:rated|rating|ratings)?.*?(?:above|over|greater than|at least)\s*(\d+(?:\.\d+)?)(?:\s*(h|hr|hrs|hour|hours|m|min|minute|minutes))?/);
+  if (above && !followedByRuntimeUnit(above)) return { min: Number(above[1]) };
 
-  const below = lower.match(/(?:rated|rating|ratings)?.*?(?:below|under|less than|at most)\s*(\d+(?:\.\d+)?)/);
-  if (below) return { max: Number(below[1]) };
+  const below = lower.match(/(?:rated|rating|ratings)?.*?(?:below|under|less than|at most)\s*(\d+(?:\.\d+)?)(?:\s*(h|hr|hrs|hour|hours|m|min|minute|minutes))?/);
+  if (below && !followedByRuntimeUnit(below)) return { max: Number(below[1]) };
 
   const exact = lower.match(/(?:rated|rating|ratings)\s*(?:exactly|of)?\s*(\d+(?:\.\d+)?)/);
   if (exact) return { min: Number(exact[1]), max: Number(exact[1]) };
@@ -155,7 +158,7 @@ function parseRuntime(message: string) {
   const under = lower.match(/(?:under|less than|at most)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)/);
   if (under) return { max: normalizeRuntime(under[1], under[2]) };
 
-  const over = lower.match(/(?:over|more than|at least)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)/);
+  const over = lower.match(/(?:above|over|more than|at least)\s*(\d+)\s*(minutes|min|m|hours|hrs|h)/);
   if (over) return { min: normalizeRuntime(over[1], over[2]) };
 
   return {};
@@ -163,6 +166,7 @@ function parseRuntime(message: string) {
 
 function inferTitle(message: string, hasStructuredFilters: boolean) {
   const lower = message.toLowerCase();
+  const trimmed = message.trim();
   const quoted = message.match(/["']([^"']+)["']/);
   if (quoted?.[1]) return quoted[1].trim();
 
@@ -170,7 +174,14 @@ function inferTitle(message: string, hasStructuredFilters: boolean) {
   if (like?.[1]) return like[1].trim();
 
   const direct = lower.match(/^(?:give|show|find|get)\s+(?:me\s+)?(.+)$/);
-  if (!direct?.[1] || hasStructuredFilters) return undefined;
+  if (!direct?.[1] || hasStructuredFilters) {
+    if (!hasStructuredFilters && /^[\p{L}\p{N}:'&.\- ]{2,60}$/u.test(trimmed)) {
+      const words = lower.split(/\s+/).filter(Boolean);
+      const meaningfulWords = words.filter((word) => !STOP_WORDS.includes(word));
+      if (meaningfulWords.length > 0 && meaningfulWords.length <= 4) return trimmed;
+    }
+    return undefined;
+  }
 
   const cleaned = direct[1]
     .split(/\s+/)
@@ -179,6 +190,35 @@ function inferTitle(message: string, hasStructuredFilters: boolean) {
     .trim();
 
   return cleaned || undefined;
+}
+
+function pageDepthForPlan(plan: SearchPlan) {
+  const hasNarrowConstraints = Boolean(
+    plan.constraints.providerId ||
+      plan.constraints.runtimeMin !== undefined ||
+      plan.constraints.runtimeMax !== undefined ||
+      plan.constraints.ratingMin !== undefined ||
+      plan.constraints.ratingMax !== undefined
+  );
+
+  return hasNarrowConstraints ? 3 : 1;
+}
+
+async function fetchDiscoverPages(plan: SearchPlan, depth: number) {
+  const pages = await Promise.all(
+    Array.from({ length: depth }, (_, index) => {
+      const params = new URLSearchParams(plan.filters);
+      params.set("page", String(index + 1));
+      return tmdbServer.discoverMovies(params);
+    })
+  );
+
+  const [first] = pages;
+
+  return {
+    ...first,
+    results: pages.flatMap((page) => page.results || []),
+  };
 }
 
 function createPlan(message: string, providers: Provider[], region: string): SearchPlan {
@@ -361,7 +401,7 @@ export async function POST(req: Request) {
     const rawMovies =
       plan.mode === "title" && plan.title
         ? await tmdbServer.searchMovies(plan.title, "1")
-        : await tmdbServer.discoverMovies(new URLSearchParams(plan.filters));
+        : await fetchDiscoverPages(plan, pageDepthForPlan(plan));
 
     const enriched = await enrichMoviesWithRuntime(rawMovies);
     const ranked = plan.mode === "title" && plan.title

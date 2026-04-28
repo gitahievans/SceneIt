@@ -17,7 +17,7 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
     const [played, setPlayed] = useState(0);
     const [seeking, setSeeking] = useState(false);
     const [showControls, setShowControls] = useState(true);
-    const [selectedType, setSelectedType] = useState('All');
+    const [selectedType, setSelectedType] = useState('Trailer');
     const [showTypeFilter, setShowTypeFilter] = useState(false);
 
     const playerRef = useRef<any>(null);
@@ -32,15 +32,27 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
         enabled: !!id,
     });
 
+    const allVideos = videos?.results || [];
+    const hasTrailers = allVideos.some((video: Video) => video.type === 'Trailer');
+
     // Get unique video types
-    const videoTypes: string[] = ['All', ...new Set<string>(videos?.results?.map((video: Video) => video.type) || [])];
+    const videoTypes: string[] = ['All', ...new Set<string>(allVideos.map((video: Video) => video.type) || [])];
 
     // Filter videos by selected type
     const filteredVideos = selectedType === 'All'
-        ? videos?.results || []
-        : videos?.results?.filter((video: Video) => video.type === selectedType) || [];
+        ? allVideos
+        : allVideos.filter((video: Video) => video.type === selectedType);
 
     const currentVideo = filteredVideos[selectedVideo];
+
+    useEffect(() => {
+        if (!videos) return;
+
+        if (!hasTrailers && selectedType === 'Trailer') {
+            setSelectedType('All');
+            setSelectedVideo(0);
+        }
+    }, [hasTrailers, selectedType, videos]);
 
     useEffect(() => {
         if (currentVideo && filteredVideos.length > 0) {
@@ -78,21 +90,42 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
         setSeeking(true);
     };
 
-    const handleSeekMouseUp = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleSeekMouseUp = (e: React.SyntheticEvent<HTMLInputElement>) => {
         setSeeking(false);
-        if (playerRef.current && playerRef.current.getInternalPlayer) {
-            playerRef.current.seekTo(parseFloat(e.target.value));
+        const nextPlayed = parseFloat(e.currentTarget.value);
+        const player = playerRef.current;
+
+        if (player) {
+            const playerDuration = Number.isFinite(player.duration) ? player.duration : duration;
+            if (Number.isFinite(playerDuration) && playerDuration > 0) {
+                player.currentTime = nextPlayed * playerDuration;
+            } else if (typeof player.seekTo === 'function') {
+                player.seekTo(nextPlayed, 'fraction');
+            }
         }
     };
 
     const handleProgress = (state: { played: number; loaded: number; playedSeconds: number; loadedSeconds: number }) => {
-        if (!seeking) {
+        if (!seeking && typeof state.played === 'number') {
             setPlayed(state.played);
         }
     };
 
-    const handleDuration = (duration: number) => {
-        setDuration(duration);
+    const handleTimeUpdate = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+        if (seeking) return;
+
+        const player = event.currentTarget;
+        if (Number.isFinite(player.duration) && player.duration > 0) {
+            setDuration(player.duration);
+            setPlayed(player.currentTime / player.duration);
+        }
+    };
+
+    const handleDurationChange = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+        const nextDuration = event.currentTarget.duration;
+        if (Number.isFinite(nextDuration)) {
+            setDuration(nextDuration);
+        }
     };
 
     const handleFullscreen = () => {
@@ -187,7 +220,8 @@ const WatchPage = ({ params }: { params: Promise<{ id: number }> }) => {
                     handleSeekMouseDown={handleSeekMouseDown}
                     handleSeekMouseUp={handleSeekMouseUp}
                     handleProgress={handleProgress}
-                    handleDuration={handleDuration}
+                    handleTimeUpdate={handleTimeUpdate}
+                    handleDurationChange={handleDurationChange}
                     handleFullscreen={handleFullscreen}
                     handleMouseMove={handleMouseMove}
                     formatTime={formatTime}

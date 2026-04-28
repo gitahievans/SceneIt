@@ -1,4 +1,4 @@
-import { Play, Pause, Volume2, VolumeX, Maximize, Filter, ChevronDown } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Maximize } from 'lucide-react';
 import React from 'react'
 import ReactPlayer from 'react-player';
 import { Video } from '@/types/types';
@@ -23,9 +23,10 @@ interface PlayerComponentProps {
     handleVolumeChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
     handleSeekChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
     handleSeekMouseDown: () => void,
-    handleSeekMouseUp: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    handleSeekMouseUp: (e: React.SyntheticEvent<HTMLInputElement>) => void,
     handleProgress: (state: { played: number; loaded: number; playedSeconds: number; loadedSeconds: number }) => void,
-    handleDuration: (duration: number) => void,
+    handleTimeUpdate: (event: React.SyntheticEvent<HTMLVideoElement>) => void,
+    handleDurationChange: (event: React.SyntheticEvent<HTMLVideoElement>) => void,
     handleFullscreen: () => void,
     handleMouseMove: () => void,
     formatTime: (time: number) => string,
@@ -55,7 +56,8 @@ const PlayerComponent = ({
     handleSeekMouseDown,
     handleSeekMouseUp,
     handleProgress,
-    handleDuration,
+    handleTimeUpdate,
+    handleDurationChange,
     handleFullscreen,
     handleMouseMove,
     formatTime,
@@ -88,7 +90,8 @@ const PlayerComponent = ({
                         handleProgress(state as any);
                     }
                 }}
-                // onDuration={handleDuration}
+                onTimeUpdate={handleTimeUpdate}
+                onDurationChange={handleDurationChange}
                 onEnded={() => setPlaying(false)}
                 onReady={() => console.log('Player ready')}
                 onError={(error) => console.error('Player error:', error)}
@@ -137,7 +140,10 @@ const PlayerComponent = ({
                             value={played}
                             onChange={handleSeekChange}
                             onMouseDown={handleSeekMouseDown}
-                            // onMouseUp={handleSeekMouseUp}
+                            onMouseUp={handleSeekMouseUp}
+                            onTouchStart={handleSeekMouseDown}
+                            onTouchEnd={handleSeekMouseUp}
+                            onKeyUp={handleSeekMouseUp}
                             className="w-full h-1 bg-gray-700/60 rounded-lg appearance-none cursor-pointer slider progress-bar"
                             style={{
                                 background: `linear-gradient(to right, #a855f7 0%, #8b5cf6 ${played * 100}%, rgba(75, 85, 99, 0.6) ${played * 100}%, rgba(75, 85, 99, 0.6) 100%)`

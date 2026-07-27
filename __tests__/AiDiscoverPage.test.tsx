@@ -133,6 +133,28 @@ describe("AiDiscoverPage", () => {
     expect(screen.getAllByText("8 of 10 AI messages used today").length).toBeGreaterThan(0);
   });
 
+  it("only shows suggestions from the latest assistant response", async () => {
+    fetchMock
+      .mockResolvedValueOnce(discoveryResponse("Try Heat.", 1, 9, ["Compare Heat with Thief"]))
+      .mockResolvedValueOnce(discoveryResponse("Try Thief.", 2, 8, ["Where can I stream Thief?"]));
+
+    render(<AiDiscoverPage />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
+      target: { value: "Find a crime movie" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
+    expect(await screen.findByRole("button", { name: "Compare Heat with Thief" })).toBeInTheDocument();
+
+    fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
+      target: { value: "Give me another" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
+
+    expect(await screen.findByRole("button", { name: "Where can I stream Thief?" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Compare Heat with Thief" })).not.toBeInTheDocument();
+  });
+
   it("shows a retry action for retryable AI errors", async () => {
     fetchMock
       .mockResolvedValueOnce(retryableErrorResponse())

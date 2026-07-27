@@ -148,4 +148,40 @@ describe("SceneIt provider fallback", () => {
       { role: "user", content: "Which one is shorter?" },
     ]));
   });
+
+  it("creates follow-up suggestions from the current request and returned movies", async () => {
+    const state = createToolExecutionState("US");
+    state.movies.set(1, { id: 1, title: "Arrival" } as never);
+    state.movies.set(2, { id: 2, title: "Contact" } as never);
+
+    const response = await runSceneItDiscovery({
+      message: "Find thoughtful first-contact science fiction",
+      messages: [],
+      state,
+      runtime: runtime(jest.fn().mockResolvedValue(result("Arrival and Contact both fit your request."))),
+    });
+
+    expect(response.followUps).toEqual([
+      "Which best matches my request: Arrival, Contact?",
+      "Show me more movies like Arrival",
+      "Where can I stream Arrival?",
+    ]);
+  });
+
+  it("includes the current research topic in follow-up suggestions", async () => {
+    const state = createToolExecutionState("US");
+    state.activity.set("webSearch", 1);
+
+    const response = await runSceneItDiscovery({
+      message: "Latest casting news for Dune Messiah?",
+      messages: [],
+      state,
+      runtime: runtime(jest.fn().mockResolvedValue(result("Here is the latest confirmed casting news."))),
+    });
+
+    expect(response.followUps).toEqual(expect.arrayContaining([
+      "What is the latest confirmed update about: Latest casting news for Dune Messiah?",
+      "Find a primary-source interview related to: Latest casting news for Dune Messiah",
+    ]));
+  });
 });

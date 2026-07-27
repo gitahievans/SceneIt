@@ -94,6 +94,7 @@ export default function AiDiscoverPage() {
     ? `${usage.used} of ${usage.limit} AI messages used today`
     : "10 AI messages available per day";
   const isLimitReached = usage?.remaining === 0;
+  const latestAssistantTurnId = turns.findLast((turn) => turn.role === "assistant")?.id;
 
   useEffect(() => {
     transcriptEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
@@ -301,7 +302,7 @@ export default function AiDiscoverPage() {
                     </section>
                   )}
 
-                  {(turn.result?.followUps?.length ?? 0) > 0 && (
+                  {turn.id === latestAssistantTurnId && (turn.result?.followUps?.length ?? 0) > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {turn.result?.followUps.map((followUp) => (
                         <button
@@ -345,7 +346,7 @@ export default function AiDiscoverPage() {
               Daily limit reached. Your AI messages reset on {usage?.resetDate || "your next local day"}.
             </p>
           )}
-          <div className="flex items-end gap-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex items-end gap-3">
             <textarea
               value={message}
               onChange={(event) => setMessage(event.target.value)}
@@ -358,7 +359,7 @@ export default function AiDiscoverPage() {
               rows={1}
               placeholder="Ask for recommendations, a recap, an interview, or current release information..."
               disabled={isLimitReached}
-              className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-3 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed dark:text-white"
+              className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-1 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed dark:text-white"
             />
             <button
               type="button"

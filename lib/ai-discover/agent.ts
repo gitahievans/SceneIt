@@ -142,12 +142,44 @@ function inferMode(state: ToolExecutionState): AiDiscoverMode {
   return "discover";
 }
 
-function followUpsFor(mode: AiDiscoverMode, hasMovies: boolean) {
-  if (mode === "explain") return ["Explain the next episode", "Give me a spoiler-light character refresher"];
-  if (mode === "research") return ["Find a primary-source interview", "Check the latest release information"];
-  return hasMovies
-    ? ["Narrow these by runtime", "Exclude movies I have watched", "Check where these are streaming"]
-    : ["Relax one of my constraints", "Try a different genre"];
+function followUpTopic(message: string) {
+  const normalized = message.replace(/\s+/g, " ").trim().replace(/[?.!]+$/, "");
+  return normalized.length > 80 ? `${normalized.slice(0, 77).trimEnd()}...` : normalized;
+}
+
+export function followUpsFor(mode: AiDiscoverMode, message: string, movies: AiDiscoverResponse["movies"]) {
+  const topic = followUpTopic(message);
+
+  if (mode === "explain") {
+    return [
+      `Continue this recap beyond: ${topic}`,
+      `Give me a spoiler-light character refresher for: ${topic}`,
+    ];
+  }
+
+  if (mode === "research") {
+    return [
+      `What is the latest confirmed update about: ${topic}?`,
+      `Find a primary-source interview related to: ${topic}`,
+    ];
+  }
+
+  if (movies.length > 0) {
+    const firstTitle = movies[0].title;
+    const comparedTitles = movies.slice(0, 3).map((movie) => movie.title).join(", ");
+    return [
+      movies.length > 1
+        ? `Which best matches my request: ${comparedTitles}?`
+        : `Why does ${firstTitle} fit what I asked for?`,
+      `Show me more movies like ${firstTitle}`,
+      `Where can I stream ${firstTitle}?`,
+    ];
+  }
+
+  return [
+    `Broaden this search while keeping its main theme: ${topic}`,
+    `Try a different angle on: ${topic}`,
+  ];
 }
 
 function toModelMessages(history: ConversationMessage[], message: string): ModelMessage[] {
@@ -220,7 +252,7 @@ export async function runSceneItDiscovery({
     movies,
     sources: collectUsedSources(state, result.text),
     toolActivity: summarizeToolActivity(state),
-    followUps: followUpsFor(mode, movies.length > 0),
+    followUps: followUpsFor(mode, message, movies),
     total_results: movies.length,
   };
 }

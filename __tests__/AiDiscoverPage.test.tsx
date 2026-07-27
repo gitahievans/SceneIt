@@ -35,6 +35,17 @@ function discoveryResponse(answer: string, used: number, remaining: number, foll
   };
 }
 
+function retryableErrorResponse() {
+  return {
+    ok: false,
+    status: 502,
+    json: async () => ({
+      error: "SceneIt AI could not complete that request. Please try again.",
+      retryable: true,
+    }),
+  };
+}
+
 describe("AiDiscoverPage", () => {
   beforeEach(() => {
     fetchMock.mockReset();
@@ -113,5 +124,24 @@ describe("AiDiscoverPage", () => {
       { role: "assistant", content: "Try Heat." },
     ]);
     expect(screen.getByText("8 of 10 AI messages used today")).toBeInTheDocument();
+  });
+
+  it("shows a retry action for retryable AI errors", async () => {
+    fetchMock
+      .mockResolvedValueOnce(retryableErrorResponse())
+      .mockResolvedValueOnce(discoveryResponse("Try The Fugitive.", 2, 8));
+
+    render(<AiDiscoverPage />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
+      target: { value: "Find a chase thriller" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Ask/i }));
+
+    expect(await screen.findByText("SceneIt AI could not complete that request. Please try again.")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+
+    expect(await screen.findByText("Try The Fugitive.")).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

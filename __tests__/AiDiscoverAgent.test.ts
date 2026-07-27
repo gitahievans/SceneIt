@@ -97,6 +97,24 @@ describe("SceneIt provider fallback", () => {
     expect(generate).toHaveBeenCalledTimes(2);
   });
 
+  it("keeps the primary failure when fallback credentials are missing", async () => {
+    const primaryFailure = new TypeError("fetch failed");
+    const generate = jest.fn().mockRejectedValueOnce(primaryFailure);
+
+    await expect(runSceneItDiscovery({
+      message: "Find something to watch",
+      messages: [],
+      state: createToolExecutionState("US"),
+      runtime: {
+        getPrimaryModel: () => primary,
+        getFallbackModel: () => {
+          throw new Error("GEMINI_API_KEY is required for fallback");
+        },
+        generate,
+      },
+    })).rejects.toBe(primaryFailure);
+  });
+
   it("does not fall back for a valid empty-result answer", async () => {
     const generate = jest.fn().mockResolvedValueOnce(
       result("I found no matching movies. Try relaxing the runtime constraint.")

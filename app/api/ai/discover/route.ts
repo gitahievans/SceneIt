@@ -152,11 +152,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ...result, ...usagePayload(usage) });
   } catch (error) {
     console.error("AI discovery failed", error);
-    const message = error instanceof Error ? error.message : "AI discovery failed";
-    const configurationError = /not configured|required for fallback|CLOUDFLARE_ACCOUNT_ID|SERPER_API_KEY/i.test(message);
     return NextResponse.json(
-      { error: configurationError ? message : "SceneIt AI is temporarily unavailable. Please try again." },
-      { status: configurationError ? 503 : 502 }
+      {
+        error: "SceneIt AI could not complete that request. Please try again.",
+        retryable: true,
+      },
+      { status: 502 }
     );
   }
 }

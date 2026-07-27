@@ -180,16 +180,31 @@ export async function runSceneItDiscovery({
   let result: AgentResult | undefined;
   let primaryError: unknown;
 
+  const generateFallback = async (fallbackState: ToolExecutionState, fallbackMessages: ModelMessage[]) => {
+    try {
+      return await generate(fallbackModel(), fallbackState, fallbackMessages);
+    } catch (fallbackError) {
+      if (
+        primaryError &&
+        fallbackError instanceof Error &&
+        /GEMINI_API_KEY is required for fallback/i.test(fallbackError.message)
+      ) {
+        throw primaryError;
+      }
+      throw fallbackError;
+    }
+  };
+
   try {
     result = await generate(primaryModel(), state, modelMessages);
     if (exhaustedWithoutAnswer(result)) {
       const continuation = result.response.messages as ModelMessage[];
-      result = await generate(fallbackModel(), state, [...modelMessages, ...continuation]);
+      result = await generateFallback(state, [...modelMessages, ...continuation]);
     }
   } catch (error) {
     primaryError = error;
     if (!shouldFallbackForError(error)) throw error;
-    result = await generate(fallbackModel(), state, modelMessages);
+    result = await generateFallback(state, modelMessages);
   }
 
   if (!result || !hasUsableAnswer(result)) {

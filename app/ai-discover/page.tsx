@@ -46,6 +46,7 @@ export default function AiDiscoverPage() {
   const [usage, setUsage] = useState<UsageMetadata | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [canRetry, setCanRetry] = useState(false);
 
   useEffect(() => {
     try {
@@ -99,6 +100,7 @@ export default function AiDiscoverPage() {
     setMessage(value);
     setIsLoading(true);
     setError("");
+    setCanRetry(false);
 
     const userTurn: ChatTurn = { id: createTurnId(), role: "user", content: value };
     const requestTurns = [...turns, userTurn];
@@ -131,6 +133,7 @@ export default function AiDiscoverPage() {
             resetDate: data.resetDate,
           } : usage);
         }
+        setCanRetry(data.retryable === true);
         throw new Error(data.error || "Failed to ask SceneIt AI");
       }
       const nextResult = data as AiDiscoveryResponse;
@@ -223,8 +226,18 @@ export default function AiDiscoverPage() {
       </section>
 
       {error && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300">
-          {error}
+        <div className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900 dark:bg-red-950/30 dark:text-red-300 sm:flex-row sm:items-center sm:justify-between">
+          <span>{error}</span>
+          {canRetry && message.trim() && !isLimitReached && (
+            <button
+              type="button"
+              onClick={() => void ask(message)}
+              disabled={isLoading}
+              className="inline-flex min-h-10 items-center justify-center rounded-lg border border-red-200 bg-white px-4 text-sm font-semibold text-red-700 transition hover:border-red-300 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200 dark:hover:bg-red-950"
+            >
+              Try again
+            </button>
+          )}
         </div>
       )}
 

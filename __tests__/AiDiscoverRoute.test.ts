@@ -146,4 +146,16 @@ describe("POST /api/ai/discover", () => {
     expect(rpc).not.toHaveBeenCalled();
     expect(runSceneItDiscovery).not.toHaveBeenCalled();
   });
+
+  it("does not expose provider configuration errors to users", async () => {
+    runSceneItDiscovery.mockRejectedValue(new Error("GEMINI_API_KEY is required for fallback"));
+
+    const response = await POST(makeRequest({ message: "Find something to watch" }));
+
+    expect(response.status).toBe(502);
+    expect(await response.json()).toEqual({
+      error: "SceneIt AI could not complete that request. Please try again.",
+      retryable: true,
+    });
+  });
 });

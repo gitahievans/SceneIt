@@ -15,7 +15,13 @@ jest.mock("@/components/ai-elements/message", () => ({
 const fetchMock = jest.fn();
 const originalFetch = global.fetch;
 
-function discoveryResponse(answer: string, used: number, remaining: number, followUps: string[] = []) {
+function discoveryResponse(
+  answer: string,
+  used: number,
+  remaining: number,
+  followUps: string[] = [],
+  sources: Array<{ title: string; url: string; snippet?: string; source?: string }> = []
+) {
   return {
     ok: true,
     status: 200,
@@ -23,7 +29,7 @@ function discoveryResponse(answer: string, used: number, remaining: number, foll
       mode: "discover",
       answer,
       movies: [],
-      sources: [],
+      sources,
       toolActivity: [],
       followUps,
       total_results: 0,
@@ -50,6 +56,7 @@ describe("AiDiscoverPage", () => {
   beforeEach(() => {
     fetchMock.mockReset();
     window.sessionStorage.clear();
+    Element.prototype.scrollIntoView = jest.fn();
     Object.defineProperty(global, "fetch", { value: fetchMock, writable: true });
   });
 
@@ -67,21 +74,21 @@ describe("AiDiscoverPage", () => {
     fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
       target: { value: "Recommend thoughtful sci-fi" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Ask/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
 
     expect(await screen.findByText("Try Arrival.")).toBeInTheDocument();
 
     fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
       target: { value: "Another one" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Ask/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
 
     expect(await screen.findByText("Try Contact next.")).toBeInTheDocument();
 
     expect(screen.getByText("Recommend thoughtful sci-fi")).toBeInTheDocument();
     expect(screen.getByText("Another one")).toBeInTheDocument();
     expect(screen.getByText("Try Arrival.")).toBeInTheDocument();
-    expect(screen.getByText("2 of 10 AI messages used today")).toBeInTheDocument();
+    expect(screen.getAllByText("2 of 10 AI messages used today").length).toBeGreaterThan(0);
   });
 
   it("disables send controls when the server reports no remaining sends", async () => {
@@ -91,12 +98,12 @@ describe("AiDiscoverPage", () => {
 
     const input = screen.getByPlaceholderText(/Ask for recommendations/i);
     fireEvent.change(input, { target: { value: "Use last send" } });
-    fireEvent.click(screen.getByRole("button", { name: /Ask/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
 
-    expect(await screen.findByText("10 of 10 AI messages used today")).toBeInTheDocument();
+    expect((await screen.findAllByText("10 of 10 AI messages used today")).length).toBeGreaterThan(0);
 
     expect(input).toBeDisabled();
-    expect(screen.getByRole("button", { name: /Ask/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /Send message/i })).toBeDisabled();
     expect(screen.getByText(/Daily limit reached/i)).toBeInTheDocument();
   });
 
@@ -110,7 +117,7 @@ describe("AiDiscoverPage", () => {
     fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
       target: { value: "Find a crime movie" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Ask/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
 
     expect(await screen.findByRole("button", { name: "Find a lighter option" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Find a lighter option" }));
@@ -123,7 +130,7 @@ describe("AiDiscoverPage", () => {
       { role: "user", content: "Find a crime movie" },
       { role: "assistant", content: "Try Heat." },
     ]);
-    expect(screen.getByText("8 of 10 AI messages used today")).toBeInTheDocument();
+    expect(screen.getAllByText("8 of 10 AI messages used today").length).toBeGreaterThan(0);
   });
 
   it("shows a retry action for retryable AI errors", async () => {
@@ -136,12 +143,39 @@ describe("AiDiscoverPage", () => {
     fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
       target: { value: "Find a chase thriller" },
     });
-    fireEvent.click(screen.getByRole("button", { name: /Ask/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
 
     expect(await screen.findByText("SceneIt AI could not complete that request. Please try again.")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Try again" }));
 
     expect(await screen.findByText("Try The Fugitive.")).toBeInTheDocument();
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps sources collapsed until the user expands them", async () => {
+    fetchMock.mockResolvedValueOnce(discoveryResponse(
+      "Here is a sourced answer.",
+      1,
+      9,
+      [],
+      [{ title: "Example Source", url: "https://example.com/source", snippet: "Useful context" }]
+    ));
+
+    render(<AiDiscoverPage />);
+
+    fireEvent.change(screen.getByPlaceholderText(/Ask for recommendations/i), {
+      target: { value: "Research a current release" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Send message/i }));
+
+    expect(await screen.findByText("Here is a sourced answer.")).toBeInTheDocument();
+    const summary = screen.getByText("Sources used (1)");
+    const details = summary.closest("details");
+    expect(details).not.toHaveAttribute("open");
+
+    fireEvent.click(summary);
+
+    expect(details).toHaveAttribute("open");
+    expect(screen.getByRole("link", { name: /Example Source/i })).toHaveAttribute("href", "https://example.com/source");
   });
 });

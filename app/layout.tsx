@@ -4,7 +4,9 @@ import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
 import Providers from "@/components/Common/Providers";
 import GlobalLayout from "@/components/GlobalLayout";
-import "./globals.css";
+import { Geist } from "next/font/google";
+
+const geist = Geist({ subsets: ["latin"], variable: "--font-geist-sans" });
 
 export const metadata: Metadata = {
   title: "SceneIt",
@@ -18,7 +20,7 @@ export default function RootLayout({
 }>) {
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${geist.variable} font-sans`}>
       <body
         className="antialiased"
       >

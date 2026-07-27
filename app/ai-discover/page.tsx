@@ -1,88 +1,41 @@
 "use client";
 
-import MovieGrid from "@/components/Common/MovieGrid";
-import { MovieItem } from "@/types/types";
-import { Bot, FileText, Loader2, Send, Sparkles } from "lucide-react";
 import { useEffect, useState } from "react";
+import { Bot, ExternalLink, Loader2, Search, Send, Sparkles } from "lucide-react";
+import MovieGrid from "@/components/Common/MovieGrid";
+import { MessageResponse } from "@/components/ai-elements/message";
+import type { MovieItem } from "@/types/types";
 
+type ConversationMessage = { role: "user" | "assistant"; content: string };
+type DiscoverySource = { title: string; url: string; snippet?: string; source?: string };
 type AiDiscoveryResponse = {
-  mode?: "discover" | "explain";
+  mode: "discover" | "explain" | "research";
   answer: string;
-  filters?: Record<string, string>;
-  plan?: {
-    mode: string;
-    title?: string;
-    labels: string[];
-  };
-  movies?: MovieItem[];
-  followUps?: string[];
-  total_results?: number;
+  movies: MovieItem[];
+  sources: DiscoverySource[];
+  toolActivity: string[];
+  followUps: string[];
+  total_results: number;
 };
 
 type AiDiscoveryCache = {
   message: string;
   result: AiDiscoveryResponse;
+  conversation: ConversationMessage[];
 };
 
-const CACHE_KEY = "sceneit:ai-discover:last-result";
-
+const CACHE_KEY = "sceneit:ai-discover:session";
 const EXAMPLES = [
-  "Find me tense thrillers under 2 hours on Netflix",
-  "Recommend highly rated family movies for tonight",
-  "Show me underrated sci-fi movies from the 2010s",
+  "Find tense thrillers under 2 hours on Netflix",
+  "Recommend highly rated family movies I have not watched",
   "What happens in season 2 of Breaking Bad?",
+  "Find recent interviews with the director of Dune: Part Two",
 ];
-
-function cleanInlineMarkdown(text: string) {
-  return text.replace(/\*\*(.*?)\*\*/g, "$1").replace(/\*(.*?)\*/g, "$1").trim();
-}
-
-function ExplanationText({ text }: { text: string }) {
-  const blocks = text
-    .split(/\n{2,}/)
-    .map((block) => block.trim())
-    .filter(Boolean);
-
-  return (
-    <article className="max-w-4xl space-y-5 text-[15px] leading-7 text-gray-700 dark:text-gray-200">
-      {blocks.map((block, index) => {
-        const heading = block.match(/^#{2,4}\s+(.+)$/) || block.match(/^(.+):$/);
-        if (heading) {
-          return (
-            <h3 key={index} className="pt-2 text-xl font-semibold tracking-normal text-gray-950 dark:text-white">
-              {cleanInlineMarkdown(heading[1])}
-            </h3>
-          );
-        }
-
-        const lines = block.split("\n").map((line) => line.trim()).filter(Boolean);
-        const isList = lines.length > 1 && lines.every((line) => /^(\d+\.|-)\s+/.test(line));
-
-        if (isList) {
-          return (
-            <ol key={index} className="space-y-3 rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950/40">
-              {lines.map((line) => (
-                <li key={line} className="ml-5 list-decimal pl-1">
-                  {cleanInlineMarkdown(line.replace(/^(\d+\.|-)\s+/, ""))}
-                </li>
-              ))}
-            </ol>
-          );
-        }
-
-        return (
-          <p key={index} className="max-w-4xl">
-            {cleanInlineMarkdown(block)}
-          </p>
-        );
-      })}
-    </article>
-  );
-}
 
 export default function AiDiscoverPage() {
   const [message, setMessage] = useState("");
   const [result, setResult] = useState<AiDiscoveryResponse | null>(null);
+  const [conversation, setConversation] = useState<ConversationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -90,37 +43,30 @@ export default function AiDiscoverPage() {
     try {
       const cached = window.sessionStorage.getItem(CACHE_KEY);
       if (!cached) return;
-
       const parsed = JSON.parse(cached) as AiDiscoveryCache;
-      if (!parsed?.message || !parsed?.result) return;
-
-      setMessage(parsed.message);
+      if (!parsed?.result) return;
+      setMessage(parsed.message || "");
       setResult(parsed.result);
+      setConversation(Array.isArray(parsed.conversation) ? parsed.conversation : []);
     } catch {
       window.sessionStorage.removeItem(CACHE_KEY);
     }
   }, []);
 
-  useEffect(() => {
-    if (!result) return;
-
+  const persist = (nextMessage: string, nextResult: AiDiscoveryResponse, nextConversation: ConversationMessage[]) => {
     try {
       window.sessionStorage.setItem(
         CACHE_KEY,
-        JSON.stringify({
-          message,
-          result,
-        } satisfies AiDiscoveryCache)
+        JSON.stringify({ message: nextMessage, result: nextResult, conversation: nextConversation } satisfies AiDiscoveryCache)
       );
     } catch {
-      // Storage can fail in private browsing or under quota pressure. The page still works without restore.
+      // Conversation restore is optional; the request still succeeds without session storage.
     }
-  }, [message, result]);
+  };
 
   const ask = async (prompt = message) => {
     const value = prompt.trim();
     if (!value || isLoading) return;
-
     setMessage(value);
     setIsLoading(true);
     setError("");
@@ -129,25 +75,23 @@ export default function AiDiscoverPage() {
       const response = await fetch("/api/ai/discover", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: value, region: "US" }),
+        body: JSON.stringify({ message: value, region: "US", messages: conversation.slice(-12) }),
       });
-
       const data = await response.json();
-      if (!response.ok) throw new Error(data.error || "Failed to discover movies");
-      setResult(data);
-      try {
-        window.sessionStorage.setItem(
-          CACHE_KEY,
-          JSON.stringify({
-            message: value,
-            result: data,
-          } satisfies AiDiscoveryCache)
-        );
-      } catch {
-        // Restore is a convenience. A storage failure should not block showing fresh results.
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      if (!response.ok) throw new Error(data.error || "Failed to ask SceneIt AI");
+      const nextResult = data as AiDiscoveryResponse;
+      const userMessage: ConversationMessage = { role: "user", content: value };
+      const assistantMessage: ConversationMessage = { role: "assistant", content: nextResult.answer };
+      const nextConversation: ConversationMessage[] = [
+        ...conversation,
+        userMessage,
+        assistantMessage,
+      ].slice(-16);
+      setResult(nextResult);
+      setConversation(nextConversation);
+      persist(value, nextResult, nextConversation);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Something went wrong");
     } finally {
       setIsLoading(false);
     }
@@ -162,11 +106,11 @@ export default function AiDiscoverPage() {
           </div>
           <div>
             <p className="text-sm font-medium text-orange-600 dark:text-orange-400">SceneIt AI</p>
-            <h1 className="text-3xl font-bold text-gray-950 dark:text-white">Ask SceneIt What To Watch Or What Happened</h1>
+            <h1 className="text-3xl font-bold text-gray-950 dark:text-white">Discover with an agent</h1>
           </div>
         </div>
-        <p className="max-w-3xl text-sm text-gray-600 dark:text-gray-400">
-          Search the way you think: find movies by mood, provider, rating, year, runtime, or title, then get real cards you can inspect and save. You can also ask for recaps, endings, season catch-ups, or story explanations when you need the plot brought back into focus.
+        <p className="max-w-3xl text-sm leading-6 text-gray-600 dark:text-gray-400">
+          Ask naturally. SceneIt can combine verified TMDB recommendations, your watch history, regional providers, TV episode data, and cited public sources.
         </p>
       </section>
 
@@ -175,14 +119,13 @@ export default function AiDiscoverPage() {
           <input
             value={message}
             onChange={(event) => setMessage(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter") ask();
-            }}
-            placeholder="Ask for a movie mood, provider, runtime, genre, year..."
+            onKeyDown={(event) => { if (event.key === "Enter") void ask(); }}
+            placeholder="Ask for recommendations, a recap, an interview, or current release information..."
             className="min-h-12 flex-1 rounded-lg border border-gray-300 bg-white px-4 text-sm text-gray-900 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100 dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:ring-orange-950"
           />
           <button
-            onClick={() => ask()}
+            type="button"
+            onClick={() => void ask()}
             disabled={!message.trim() || isLoading}
             className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-orange-500 px-5 text-sm font-semibold text-white transition hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-300 dark:disabled:bg-gray-700"
           >
@@ -195,9 +138,10 @@ export default function AiDiscoverPage() {
           <div className="mt-4 flex flex-wrap gap-2">
             {EXAMPLES.map((example) => (
               <button
+                type="button"
                 key={example}
-                onClick={() => ask(example)}
-                className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition hover:border-orange-300 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:border-orange-700"
+                onClick={() => void ask(example)}
+                className="inline-flex items-center gap-2 rounded-full border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition hover:border-orange-300 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300"
               >
                 <Sparkles size={14} />
                 {example}
@@ -214,105 +158,83 @@ export default function AiDiscoverPage() {
       )}
 
       {(isLoading || result) && (
-        <section className="space-y-5">
-          <div className={`rounded-xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900 ${result?.mode === "explain" ? "p-0" : "p-5"}`}>
+        <section className="space-y-6">
+          <div className="rounded-xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-gray-900">
             <div className="flex items-start gap-3">
-              {result?.mode !== "explain" && (
-                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300">
-                  <Bot size={17} />
-                </div>
-              )}
-              <div className="w-full">
-                {result?.mode === "explain" ? (
-                  <div>
-                    <div className="border-b border-gray-200 px-6 py-5 dark:border-gray-800">
-                      <div className="flex items-start gap-3">
-                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300">
-                          <FileText size={20} />
-                        </div>
-                        <div>
-                          <p className="text-xs font-medium uppercase tracking-wide text-orange-600 dark:text-orange-400">
-                            SceneIt explanation
-                          </p>
-                          <h2 className="mt-1 text-2xl font-semibold tracking-normal text-gray-950 dark:text-white">
-                            {result.plan?.title || "Explanation"}
-                          </h2>
-                        </div>
-                      </div>
-                      {result?.plan?.labels && (
-                        <div className="mt-4 flex flex-wrap gap-2">
-                          {result.plan.labels.map((label) => (
-                            <span
-                              key={label}
-                              className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                            >
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="px-6 py-6">
-                      {isLoading ? (
-                        <p className="text-sm text-gray-600 dark:text-gray-300">Preparing a readable explanation...</p>
-                      ) : (
-                        <ExplanationText text={result?.answer || ""} />
-                      )}
-                    </div>
-                  </div>
+              <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-950 dark:text-orange-300">
+                {isLoading ? <Loader2 className="animate-spin" size={17} /> : <Bot size={17} />}
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-semibold text-gray-950 dark:text-white">
+                  {isLoading ? "Working on your request" : "SceneIt’s answer"}
+                </h2>
+                {isLoading ? (
+                  <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">Choosing the right movie, TV, and web sources…</p>
                 ) : (
-                  <>
-                    <h2 className="font-semibold text-gray-950 dark:text-white">Recommendation logic</h2>
-                    <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-gray-600 dark:text-gray-300">
-                      {isLoading ? "Matching your request to movie filters..." : result?.answer}
-                    </p>
-                  </>
-                )}
-
-                {result?.plan?.labels && (
-                  <div className={`mt-3 flex flex-wrap gap-2 ${result.mode === "explain" ? "hidden" : ""}`}>
-                    {result.plan.labels.map((label) => (
-                      <span
-                        key={label}
-                        className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {result?.filters && result.mode !== "explain" && (
-                  <details className="mt-3">
-                    <summary className="cursor-pointer text-xs font-medium text-gray-500 dark:text-gray-400">
-                      Raw filters
-                    </summary>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {Object.entries(result.filters).map(([key, value]) => (
-                        <span
-                          key={key}
-                          className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-300"
-                        >
-                          {key}: {value}
-                        </span>
-                      ))}
-                    </div>
-                  </details>
+                  <MessageResponse className="mt-3 text-[15px] leading-7 text-gray-700 dark:text-gray-200">
+                    {result?.answer || ""}
+                  </MessageResponse>
                 )}
               </div>
             </div>
+
+            {!isLoading && (result?.toolActivity?.length ?? 0) > 0 && (
+              <div className="mt-5 border-t border-gray-100 pt-4 dark:border-gray-800">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">Activity</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {result?.toolActivity.map((item) => (
+                    <span key={item} className="rounded-full bg-gray-100 px-3 py-1.5 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300">
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
-          {result?.mode !== "explain" && (
-            <MovieGrid movies={result?.movies || []} isLoading={isLoading} />
+          {!isLoading && (result?.sources?.length ?? 0) > 0 && (
+            <section className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Search size={17} className="text-orange-500" />
+                <h2 className="font-semibold text-gray-950 dark:text-white">Sources used</h2>
+              </div>
+              <div className="grid gap-3 md:grid-cols-2">
+                {result?.sources.map((source) => (
+                  <a
+                    key={source.url}
+                    href={source.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="rounded-lg border border-gray-200 bg-white p-4 transition hover:border-orange-300 dark:border-gray-800 dark:bg-gray-900 dark:hover:border-orange-800"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-gray-950 dark:text-white">{source.title}</p>
+                        {source.source && <p className="mt-1 text-xs text-orange-600 dark:text-orange-400">{source.source}</p>}
+                      </div>
+                      <ExternalLink size={15} className="shrink-0 text-gray-400" />
+                    </div>
+                    {source.snippet && <p className="mt-2 line-clamp-2 text-sm text-gray-600 dark:text-gray-400">{source.snippet}</p>}
+                  </a>
+                ))}
+              </div>
+            </section>
           )}
 
-          {result?.followUps && (
+          {(isLoading || (result?.movies?.length || 0) > 0) && (
+            <section className="space-y-3">
+              {!isLoading && <h2 className="text-xl font-semibold text-gray-950 dark:text-white">Recommendations</h2>}
+              <MovieGrid movies={result?.movies || []} isLoading={isLoading} />
+            </section>
+          )}
+
+          {!isLoading && (result?.followUps?.length ?? 0) > 0 && (
             <div className="flex flex-wrap gap-2">
-              {result.followUps.map((followUp) => (
+              {result?.followUps.map((followUp) => (
                 <button
+                  type="button"
                   key={followUp}
-                  onClick={() => ask(followUp)}
+                  onClick={() => void ask(followUp)}
                   className="rounded-full border border-gray-200 px-3 py-2 text-xs font-medium text-gray-700 transition hover:border-orange-300 hover:text-orange-600 dark:border-gray-700 dark:text-gray-300 dark:hover:border-orange-700"
                 >
                   {followUp}

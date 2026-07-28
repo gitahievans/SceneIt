@@ -339,7 +339,7 @@ export default function AiDiscoverPage() {
         )}
       </section>
 
-      <section className="sticky bottom-0 -mx-4">
+      <section className="sticky bottom-0 -mx-4 bg-white/80 pt-4 backdrop-blur-sm dark:bg-gray-900">
         <div className="mx-auto max-w-4xl">
           {isLimitReached && (
             <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">

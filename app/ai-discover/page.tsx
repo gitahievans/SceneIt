@@ -339,14 +339,14 @@ export default function AiDiscoverPage() {
         )}
       </section>
 
-      <section className="sticky bottom-0 -mx-4 border-t border-gray-200 bg-white/95 px-4 py-4 shadow-[0_-8px_30px_rgba(15,23,42,0.08)] backdrop-blur dark:border-gray-800 dark:bg-gray-950/95">
+      <section className="sticky bottom-0 -mx-4">
         <div className="mx-auto max-w-4xl">
           {isLimitReached && (
             <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
               Daily limit reached. Your AI messages reset on {usage?.resetDate || "your next local day"}.
             </p>
           )}
-          <div className="flex items-end gap-3">
+          <div className="flex items-end gap-3 rounded-xl border border-gray-200 bg-white p-2 shadow-sm dark:border-gray-800 dark:bg-gray-900">
             <textarea
               value={message}
               onChange={(event) => setMessage(event.target.value)}
@@ -359,7 +359,7 @@ export default function AiDiscoverPage() {
               rows={1}
               placeholder="Ask for recommendations, a recap, an interview, or current release information..."
               disabled={isLimitReached}
-              className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-1 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed dark:text-white"
+              className="max-h-36 min-h-11 flex-1 resize-none bg-transparent px-3 py-3 text-sm text-gray-900 outline-none placeholder:text-gray-400 disabled:cursor-not-allowed dark:text-white"
             />
             <button
               type="button"

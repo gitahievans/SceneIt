@@ -73,16 +73,16 @@ const MovieCard = ({ movie }: MovieCardProps) => {
   return (
     <div className="group relative mx-auto w-full max-w-sm">
       <div
-        className="relative cursor-pointer overflow-hidden rounded-2xl border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-md transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl dark:border-gray-700 dark:from-gray-800 dark:to-gray-900 dark:shadow-gray-900/50 dark:hover:shadow-2xl"
+        className="relative cursor-pointer overflow-hidden rounded-md border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-md transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl dark:border-gray-700 dark:from-gray-800 dark:to-gray-900 dark:shadow-gray-900/50 dark:hover:shadow-2xl"
         onClick={handleCardPress}
       >
-        <div className="relative overflow-hidden rounded-t-lg">
+        <div className="relative overflow-hidden rounded-t-md">
           <Image
             src={getPoster(movie.poster_path)}
             alt={movie.title}
-            width={500}
+            width={1000}
             height={750}
-            className="aspect-[2/3] w-full object-cover transition-transform duration-500 group-hover:scale-110"
+            className="w-full object-cover transition-transform duration-500 group-hover:scale-110"
             priority={false}
             loading="lazy"
             unoptimized

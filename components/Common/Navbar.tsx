@@ -12,11 +12,9 @@ import { useAuth } from "./Providers";
 import { useTheme } from "next-themes";
 
 const navLinks = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/discover", label: "Discover", icon: Compass },
-  { href: "/ai-discover", label: "AI Discover", icon: Bot },
-  { href: "/providers", label: "Providers", icon: PlaySquare },
-  { href: "/favorites", label: "Favorites", icon: Heart },
+  { href: "/movies", label: "Movies", icon: Compass },
+  { href: "/tv", label: "TV", icon: PlaySquare },
+  { href: "/ai-movie-recommendations", label: "AI Discover", icon: Bot },
 ];
 
 const mobileNavLinks = [{ href: "/profile", label: "Profile", icon: User }, ...navLinks];
@@ -75,8 +73,7 @@ export default function Navbar() {
                 <Search className="h-5 w-5" />
               </button>
 
-              {user &&
-                navLinks.map((link) => {
+              {navLinks.map((link) => {
                   const Icon = link.icon;
                   const active = path === link.href;
 
@@ -95,6 +92,8 @@ export default function Navbar() {
                     </Link>
                   );
                 })}
+
+              {user && <Link href="/favorites" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"><Heart size={15} />Favorites</Link>}
 
               {user ? (
                 <div className="relative" ref={dropdownRef}>

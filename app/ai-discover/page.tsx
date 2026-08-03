@@ -5,6 +5,7 @@ import { Bot, ChevronDown, ExternalLink, Loader2, Search, Send, Sparkles } from 
 import MovieGrid from "@/components/Common/MovieGrid";
 import { MessageResponse } from "@/components/ai-elements/message";
 import type { MovieItem } from "@/types/types";
+import { trackEvent } from "@/components/Analytics/AnalyticsConsent";
 
 type ConversationMessage = { role: "user" | "assistant"; content: string };
 type UsageMetadata = { limit: number; used: number; remaining: number; resetDate?: string };
@@ -111,6 +112,7 @@ export default function AiDiscoverPage() {
     const userTurn: ChatTurn = { id: createTurnId(), role: "user", content: value };
     const requestTurns = [...turns, userTurn];
     setTurns(requestTurns);
+    trackEvent("ai_recommendation_submitted", { prompt_length: value.length });
 
     try {
       const { localDate, timeZone } = getLocalRequestContext();

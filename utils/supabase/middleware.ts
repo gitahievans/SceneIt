@@ -36,15 +36,10 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse
   }
 
-  const publicRoutes = ['/login', '/signup', '/auth/confirm', '/auth/callback', '/', '/details/']
-  const isPublicRoute = publicRoutes.some(route => {
-    if (route === '/') {
-      return pathname === '/'
-    }
-    return pathname.startsWith(route)
-  })
+  const protectedRoutes = ['/favorites', '/profile', '/onboarding', '/watch/']
+  const isProtectedRoute = protectedRoutes.some(route => pathname === route || pathname.startsWith(route))
 
-  if (!user && !isPublicRoute) {
+  if (!user && isProtectedRoute) {
     const redirectResponse = NextResponse.redirect(new URL('/login', request.url))
     supabaseResponse.cookies.getAll().forEach(cookie => {
       redirectResponse.cookies.set(cookie.name, cookie.value, cookie)

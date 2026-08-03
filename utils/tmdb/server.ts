@@ -34,14 +34,18 @@ function buildUrl(endpoint: string, params?: URLSearchParams) {
   return url;
 }
 
-export async function fetchTmdb<T>(endpoint: string, params?: URLSearchParams): Promise<T> {
+export async function fetchTmdb<T>(
+  endpoint: string,
+  params?: URLSearchParams,
+  revalidate = 60 * 60 * 24
+): Promise<T> {
   if (!ACCESS_TOKEN && !API_KEY) {
     throw new Error("TMDB credentials are not configured");
   }
 
   const response = await fetch(buildUrl(endpoint, params), {
     headers: getAuthHeaders(),
-    next: { revalidate: 60 * 30 },
+    next: { revalidate },
   });
 
   if (!response.ok) {
@@ -98,15 +102,30 @@ export async function enrichMoviesWithRuntime(data: MovieResponse): Promise<Movi
 }
 
 export const tmdbServer = {
-  discoverMovies: (params: URLSearchParams) => fetchTmdb<MovieResponse>("/discover/movie", params),
+  trending: (kind: "movie" | "tv") =>
+    fetchTmdb<MovieResponse>(`/trending/${kind}/day`, new URLSearchParams({ language: "en-US" }), 60 * 60),
+  discover: (kind: "movie" | "tv", params: URLSearchParams) =>
+    fetchTmdb<MovieResponse>(`/discover/${kind}`, params, 60 * 60 * 6),
+  discoverMovies: (params: URLSearchParams) => fetchTmdb<MovieResponse>("/discover/movie", params, 60 * 60 * 6),
+  genresFor: (kind: "movie" | "tv") =>
+    fetchTmdb<{ genres: Array<{ id: number; name: string }> }>(`/genre/${kind}/list`, new URLSearchParams({ language: "en-US" })),
   genres: () => fetchTmdb("/genre/movie/list", new URLSearchParams({ language: "en-US" })),
   movieProviders: (region = "US") =>
     fetchTmdb<ProviderResponse>(
       "/watch/providers/movie",
-      new URLSearchParams({ language: "en-US", watch_region: region })
+      new URLSearchParams({ language: "en-US", watch_region: region }),
+      60 * 60 * 6
+    ),
+  details: (kind: "movie" | "tv", id: string) =>
+    fetchTmdb<any>(
+      `/${kind}/${id}`,
+      new URLSearchParams({
+        language: "en-US",
+        append_to_response: "recommendations,similar,watch/providers,credits,keywords",
+      })
     ),
   movieDetails: (id: string) =>
-    fetchTmdb(
+    fetchTmdb<any>(
       `/movie/${id}`,
       new URLSearchParams({
         language: "en-US",

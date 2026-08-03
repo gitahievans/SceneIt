@@ -2,6 +2,7 @@
 
 import { signup } from "@/app/(auth)/actions";
 import { useFormStatus } from "react-dom";
+import { trackEvent } from "../Analytics/AnalyticsConsent";
 
 function SignUpButton() {
     const { pending } = useFormStatus();
@@ -9,6 +10,7 @@ function SignUpButton() {
     return (
         <button
             formAction={signup}
+            onClick={() => trackEvent("signup_started")}
             className="w-full group relative flex items-center justify-center gap-2 px-6 py-4 
              bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700
              text-white font-semibold rounded-xl transition-all duration-300 

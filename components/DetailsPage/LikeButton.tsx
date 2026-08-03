@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { User } from "@supabase/supabase-js";
 import { Heart } from "lucide-react";
 import { useAuth } from "../Common/Providers";
+import { trackEvent } from "../Analytics/AnalyticsConsent";
 
 export const toggleLike = async (user: User | null, movieId: number | undefined, liked: boolean, setLiked: (liked: boolean) => void, setLoading: (loading: boolean) => void) => {
   if (!user) return alert("Log in to like this movie");
@@ -60,7 +61,7 @@ export default function LikeButton({ movieId }: { movieId: number | undefined })
 
   return (
     <button
-      onClick={() => toggleLike(user, movieId, liked, setLiked, setLoading)}
+      onClick={() => { trackEvent("favorite_save_attempted", { movie_id: movieId || 0, authenticated: Boolean(user) }); toggleLike(user, movieId, liked, setLiked, setLoading); }}
       disabled={loading}
       className={`
         group relative flex items-center gap-3 

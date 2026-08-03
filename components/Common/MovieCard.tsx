@@ -4,8 +4,9 @@ import { QueryService } from "@/app/services/queryClient";
 import { Genre } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import ProviderBadge from "./ProviderBadge";
+import { mediaPath } from "@/utils/seo/site";
 
 export interface MovieCardProps {
   movie: {
@@ -27,7 +28,6 @@ export interface MovieCardProps {
 }
 
 const MovieCard = ({ movie }: MovieCardProps) => {
-  const router = useRouter();
   const { getPoster } = QueryService;
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
   const rating = Number.isFinite(movie.vote_average) ? movie.vote_average : 0;
@@ -66,15 +66,11 @@ const MovieCard = ({ movie }: MovieCardProps) => {
     rating ? `TMDB ${rating.toFixed(1)}` : "NR",
   ].filter(Boolean);
 
-  const handleCardPress = () => {
-    router.push(`/details/${movie.id}`);
-  };
-
   return (
     <div className="group relative mx-auto w-full max-w-sm">
-      <div
+      <Link
+        href={mediaPath("movie", movie.id, movie.title)}
         className="relative cursor-pointer overflow-hidden rounded-md border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-md transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl dark:border-gray-700 dark:from-gray-800 dark:to-gray-900 dark:shadow-gray-900/50 dark:hover:shadow-2xl"
-        onClick={handleCardPress}
       >
         <div className="relative overflow-hidden rounded-t-md">
           <Image
@@ -85,7 +81,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
             className="w-full object-cover transition-transform duration-500 group-hover:scale-110"
             priority={false}
             loading="lazy"
-            unoptimized
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 17vw"
           />
 
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
@@ -147,7 +143,7 @@ const MovieCard = ({ movie }: MovieCardProps) => {
         </div>
 
         <div className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/10 to-transparent transition-transform duration-1000 group-hover:translate-x-full dark:via-white/5" />
-      </div>
+      </Link>
     </div>
   );
 };

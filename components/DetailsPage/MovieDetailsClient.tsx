@@ -3,7 +3,7 @@
 import { QueryService } from "@/app/services/queryClient";
 import { Company, Genre, Provider } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
+import MediaImage from "@/components/Common/MediaImage";
 import LikeButton from "./LikeButton";
 import Loading from "../Common/Loader";
 import ProviderBadge from "../Common/ProviderBadge";
@@ -34,7 +34,7 @@ const getRatingColor = (rating?: number) => {
 };
 
 const MovieDetailsClient = ({ movieId }: { movieId: number }) => {
-  const { getMovieDetails, getPoster } = QueryService;
+  const { getMovieDetails } = QueryService;
 
   const { data: movie, isLoading, error } = useQuery({
     queryKey: ["movie-details", movieId],
@@ -62,13 +62,15 @@ const MovieDetailsClient = ({ movieId }: { movieId: number }) => {
     <>
       <div className="relative lg:h-screen">
         <div className="absolute inset-0">
-          <Image
-            src={getPoster(movie.backdrop_path, "w1280")}
+          <MediaImage
+            path={movie.backdrop_path}
+            kind="backdrop"
+            size="w1280"
+            fallback="backdrop"
             alt={`${movie.title} backdrop`}
             fill
             className="object-cover"
             priority
-            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/60 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-r from-gray-900/80 via-transparent to-gray-900/40" />
@@ -79,12 +81,13 @@ const MovieDetailsClient = ({ movieId }: { movieId: number }) => {
             <div className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
               <div className="lg:col-span-4 xl:col-span-3">
                 <div className="relative mx-auto aspect-[2/3] w-80 overflow-hidden rounded-2xl shadow-2xl lg:mx-0 lg:w-full">
-                  <Image
-                    src={getPoster(movie.poster_path, "w500")}
+                  <MediaImage
+                    path={movie.poster_path}
+                    kind="poster"
+                    size="w500"
                     alt={`${movie.title} poster`}
                     fill
                     className="object-cover"
-                    unoptimized
                   />
                 </div>
               </div>
@@ -186,13 +189,16 @@ const MovieDetailsClient = ({ movieId }: { movieId: number }) => {
                     <div key={company.id} className="flex items-center space-x-4">
                       {company.logo_path && (
                         <div className="h-16 w-16 flex-shrink-0 rounded-lg bg-white p-2">
-                          <Image
-                            src={getPoster(company.logo_path, "w200")}
+                          <MediaImage
+                            path={company.logo_path}
+                            kind="logo"
+                            size="w185"
+                            fallback="provider"
+                            fallbackLabel={company.name}
                             alt={`${company.name} logo`}
                             width={60}
                             height={60}
                             className="h-full w-full object-contain"
-                            unoptimized
                           />
                         </div>
                       )}

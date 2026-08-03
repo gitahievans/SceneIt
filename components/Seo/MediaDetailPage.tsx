@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import Breadcrumbs from "./Breadcrumbs";
@@ -10,6 +9,8 @@ import { tmdbServer } from "@/utils/tmdb/server";
 import TrackEvent from "@/components/Analytics/TrackEvent";
 import LikeButton from "@/components/DetailsPage/LikeButton";
 import WatchButton from "@/components/Player/WatchButton";
+import MediaImage from "@/components/Common/MediaImage";
+import { tmdbImageUrl } from "@/utils/tmdb/image";
 
 export type MediaDetails = {
   id: number;
@@ -71,10 +72,10 @@ export default async function MediaDetailPage({ kind, slug }: { kind: ContentKin
       <TrackEvent name={`${kind}_detail_opened`} parameters={{ id: details.id, title }} />
       <article>
         <header className="relative overflow-hidden">
-          {details.backdrop_path && <Image src={`https://image.tmdb.org/t/p/w1280${details.backdrop_path}`} alt="" fill priority sizes="100vw" className="object-cover opacity-25" />}
+          <MediaImage path={details.backdrop_path} kind="backdrop" size="w1280" fallback="backdrop" fallbackLabel={`${title} backdrop unavailable`} alt="" fill priority sizes="100vw" className="object-cover opacity-25" />
           <div className="relative mx-auto grid max-w-7xl gap-8 px-4 py-12 md:grid-cols-[260px_1fr] md:py-20">
             <div className="relative aspect-[2/3] overflow-hidden rounded-xl bg-gray-800">
-              <Image src={details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : "/assets/icon.png"} alt={`${title} poster`} fill priority sizes="260px" className="object-cover" />
+              <MediaImage path={details.poster_path} kind="poster" size="w500" alt={`${title} poster`} fill priority sizes="260px" className="object-cover" />
             </div>
             <div className="self-center">
               <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: kind === "movie" ? "Movies" : "TV", href: kind === "movie" ? "/movies" : "/tv" }, { name: title, href: canonical }]} />
@@ -100,7 +101,7 @@ export default async function MediaDetailPage({ kind, slug }: { kind: ContentKin
       </article>
       <JsonLd data={{
         "@context": "https://schema.org", "@type": schemaType, name: title, description: details.overview,
-        url: absoluteUrl(canonical), image: details.poster_path ? `https://image.tmdb.org/t/p/w500${details.poster_path}` : undefined,
+        url: absoluteUrl(canonical), image: tmdbImageUrl(details.poster_path, "poster", "w500") || undefined,
         dateCreated: date || undefined,
         aggregateRating: details.vote_average && details.vote_count ? { "@type": "AggregateRating", ratingValue: details.vote_average, bestRating: 10, worstRating: 0, ratingCount: details.vote_count } : undefined,
       }} />

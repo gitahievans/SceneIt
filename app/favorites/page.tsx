@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { getUserLikes } from "@/utils/supabase/queries";
 import { MovieItem } from "@/types/types";
-import Image from "next/image";
+import MediaImage from "@/components/Common/MediaImage";
 import { useRouter } from "next/navigation";
 import { QueryService } from "../services/queryClient";
 import Loading from "@/components/Common/Loader";
@@ -70,11 +70,14 @@ const FavoritesPage = () => {
             onClick={() => router.push(`/details/${movie.id}`)}
             className="cursor-pointer group"
           >
-            <Image
-              src={QueryService.getPoster(movie.poster_path)}
+            <MediaImage
+              path={movie.poster_path}
+              kind="poster"
+              size="w500"
               alt={movie.title}
               width={300}
               height={450}
+              sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
               className="rounded-lg object-cover transition-transform transform group-hover:scale-105"
             />
             <h3 className="text-sm mt-2 font-semibold text-gray-800 dark:text-white truncate">

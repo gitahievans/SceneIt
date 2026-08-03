@@ -14,6 +14,8 @@ const DISCOVER_KEYS = [
   "with_runtime.lte",
   "primary_release_date.gte",
   "primary_release_date.lte",
+  "first_air_date.gte",
+  "first_air_date.lte",
   "watch_region",
   "with_watch_providers",
   "with_watch_monetization_types",
@@ -32,8 +34,9 @@ export async function GET(req: Request) {
       watch_region: "US",
     });
 
-    const data = await tmdbServer.discoverMovies(params);
-    return NextResponse.json(await enrichMoviesWithRuntime(data));
+    const kind = searchParams.get("kind") === "tv" ? "tv" : "movie";
+    const data = await tmdbServer.discover(kind, params);
+    return NextResponse.json(kind === "movie" ? await enrichMoviesWithRuntime(data) : data);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to discover movies";
     return NextResponse.json({ error: message }, { status: 500 });

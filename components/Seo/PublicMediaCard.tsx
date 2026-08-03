@@ -1,5 +1,5 @@
-import Image from "next/image";
 import Link from "next/link";
+import MediaImage from "@/components/Common/MediaImage";
 import type { ContentKind } from "@/utils/content/collections";
 import { mediaPath } from "@/utils/seo/site";
 
@@ -33,8 +33,10 @@ export default function PublicMediaCard({ item, kind, reason }: {
     <article className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900">
       <Link href={mediaPath(kind, item.id, title)} className="group block">
         <div className="relative aspect-[2/3] bg-gray-200 dark:bg-gray-800">
-          <Image
-            src={item.poster_path ? `https://image.tmdb.org/t/p/w500${item.poster_path}` : "/assets/icon.png"}
+          <MediaImage
+            path={item.poster_path}
+            kind="poster"
+            size="w500"
             alt={`${title} poster`}
             fill
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 25vw, 16vw"

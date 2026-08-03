@@ -9,7 +9,7 @@ import { MovieItem } from "@/types/types";
 import { useRouter } from "next/navigation";
 import { Check, Plus, TicketCheck } from "lucide-react";
 import Loading from "../Common/Loader";
-import Image from "next/image";
+import MediaImage from "../Common/MediaImage";
 import LoginModal from "../Auth/LoginModal";
 import { useDisclosure } from "@mantine/hooks";
 import { checkLikedStatus, toggleLike } from "../DetailsPage/LikeButton";
@@ -122,10 +122,15 @@ function DiscoverHero() {
                                 style={{ border: 'none' }}
                             />
                         ) : (
-                            <Image
-                                src={`https://image.tmdb.org/t/p/original${mainMovie.backdrop_path}`}
+                            <MediaImage
+                                path={mainMovie.backdrop_path}
+                                kind="backdrop"
+                                size="original"
+                                fallback="backdrop"
                                 alt={mainMovie.title}
                                 fill
+                                priority
+                                sizes="(max-width: 768px) 100vw, 66vw"
                                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                             />
                         )}
@@ -190,10 +195,14 @@ function DiscoverHero() {
                                 animation: 'fadeInUp 0.6s ease-out forwards'
                             }}
                         >
-                            <Image
-                                src={`https://image.tmdb.org/t/p/w780${movie?.backdrop_path || movie?.poster_path}`}
+                            <MediaImage
+                                path={movie?.backdrop_path || movie?.poster_path}
+                                kind="backdrop"
+                                size="w780"
+                                fallback="backdrop"
                                 alt={movie?.title}
                                 fill
+                                sizes="33vw"
                                 className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                             />
 

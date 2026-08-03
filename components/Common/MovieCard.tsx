@@ -3,8 +3,8 @@
 import { QueryService } from "@/app/services/queryClient";
 import { Genre } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import Image from "next/image";
 import Link from "next/link";
+import MediaImage from "./MediaImage";
 import ProviderBadge from "./ProviderBadge";
 import { mediaPath } from "@/utils/seo/site";
 
@@ -28,13 +28,12 @@ export interface MovieCardProps {
 }
 
 const MovieCard = ({ movie }: MovieCardProps) => {
-  const { getPoster } = QueryService;
   const releaseYear = movie.release_date ? new Date(movie.release_date).getFullYear() : null;
   const rating = Number.isFinite(movie.vote_average) ? movie.vote_average : 0;
 
   const { data: genresData } = useQuery({
     queryKey: ["genres"],
-    queryFn: QueryService.getGenres,
+    queryFn: () => QueryService.getGenres("movie") as Promise<{ genres: Genre[] }>,
     staleTime: 60 * 60 * 1000,
   });
 
@@ -70,16 +69,17 @@ const MovieCard = ({ movie }: MovieCardProps) => {
     <div className="group relative mx-auto w-full max-w-sm">
       <Link
         href={mediaPath("movie", movie.id, movie.title)}
-        className="relative cursor-pointer overflow-hidden rounded-md border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-md transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl dark:border-gray-700 dark:from-gray-800 dark:to-gray-900 dark:shadow-gray-900/50 dark:hover:shadow-2xl"
+        className="relative block h-full cursor-pointer overflow-hidden rounded-md border border-gray-200 bg-gradient-to-br from-white to-gray-50 shadow-md transition-all duration-500 hover:-translate-y-2 hover:scale-[1.02] hover:shadow-2xl dark:border-gray-700 dark:from-gray-800 dark:to-gray-900 dark:shadow-gray-900/50 dark:hover:shadow-2xl"
       >
         <div className="relative overflow-hidden rounded-t-md">
-          <Image
-            src={getPoster(movie.poster_path)}
+          <MediaImage
+            path={movie.poster_path}
+            kind="poster"
+            size="w500"
             alt={movie.title}
-            width={1000}
+            width={500}
             height={750}
             className="w-full object-cover transition-transform duration-500 group-hover:scale-110"
-            priority={false}
             loading="lazy"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 17vw"
           />

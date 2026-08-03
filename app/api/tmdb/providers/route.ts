@@ -5,7 +5,7 @@ export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
     const region = searchParams.get("region") || "US";
-    const data = await tmdbServer.movieProviders(region);
+    const data = await tmdbServer.providers(region);
     return NextResponse.json(data);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Failed to fetch providers";

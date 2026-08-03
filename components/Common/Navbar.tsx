@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Bot, ChevronDownIcon, Compass, Heart, Home, LogOut, Menu, PlaySquare, Search, User, X } from "lucide-react";
+import { Bot, ChevronDownIcon, Compass, Heart, LogOut, Menu, PlaySquare, Search, Tv, User, X } from "lucide-react";
 import Logo from "../../public/assets/icon.png";
 import SearchComponent from "../Search/SearchComponent";
 import ThemeToggle from "../ThemeToggle";
@@ -14,10 +14,11 @@ import { useTheme } from "next-themes";
 const navLinks = [
   { href: "/movies", label: "Movies", icon: Compass },
   { href: "/tv", label: "TV", icon: PlaySquare },
-  { href: "/ai-movie-recommendations", label: "AI Discover", icon: Bot },
+  { href: "/ai-discover", label: "AI Discover", icon: Bot },
+  { href: "/providers", label: "Providers", icon: Tv },
 ];
 
-const mobileNavLinks = [{ href: "/profile", label: "Profile", icon: User }, ...navLinks];
+const mobileNavLinks = [...navLinks];
 
 export default function Navbar() {
   const { user, loading, signOut } = useAuth();
@@ -93,7 +94,7 @@ export default function Navbar() {
                   );
                 })}
 
-              {user && <Link href="/favorites" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"><Heart size={15} />Favorites</Link>}
+              {user && <><Link href="/discover" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"><Compass size={15} />For You</Link><Link href="/favorites" className="flex items-center gap-1.5 rounded-lg px-2 py-2 text-sm font-medium text-gray-700 dark:text-gray-300"><Heart size={15} />Favorites</Link></>}
 
               {user ? (
                 <div className="relative" ref={dropdownRef}>
@@ -207,6 +208,7 @@ export default function Navbar() {
 
               {user ? (
                 <>
+                  <Link href="/profile" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300" onClick={() => setMobileMenuOpen(false)}><User className="h-5 w-5" />Profile</Link>
                   {mobileNavLinks.map((link) => {
                     const Icon = link.icon;
                     return (
@@ -225,6 +227,8 @@ export default function Navbar() {
                       </Link>
                     );
                   })}
+                  <Link href="/discover" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300" onClick={() => setMobileMenuOpen(false)}><Compass className="h-5 w-5" />For You</Link>
+                  <Link href="/favorites" className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300" onClick={() => setMobileMenuOpen(false)}><Heart className="h-5 w-5" />Favorites</Link>
 
                   <button
                     onClick={signOut}
@@ -236,6 +240,7 @@ export default function Navbar() {
                 </>
               ) : (
                 <>
+                  {mobileNavLinks.map((link) => { const Icon = link.icon; return <Link key={link.href} href={link.href} className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300" onClick={() => setMobileMenuOpen(false)}><Icon className="h-5 w-5" />{link.label}</Link>; })}
                   <Link
                     href="/login"
                     className="block rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"

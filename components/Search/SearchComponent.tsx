@@ -45,7 +45,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
     // we cache genres to avoid repeated api calls
     const genresCache = useRef<Genre[] | null>(null);
 
-    const { getPoster, searchMovies } = QueryService;
+    const { searchMovies } = QueryService;
 
     const [defaultSections, setDefaultSections] = useState<DefaultSection[]>([]);
 
@@ -298,7 +298,6 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
                             handleResultClick={handleResultClick}
                             formatReleaseDate={formatReleaseDate}
                             truncateText={truncateText}
-                            getPoster={getPoster}
                         />
                     ))}
 

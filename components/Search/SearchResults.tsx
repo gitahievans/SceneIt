@@ -1,20 +1,17 @@
-import Image from 'next/image';
+import MediaImage from '@/components/Common/MediaImage';
 import React, { useEffect, useState } from 'react'
 import { Genre, MovieItem } from '@/types/types';
-import { Search } from 'lucide-react';
 import { QueryService } from '@/app/services/queryClient';
 
 const SearchResults = ({ item,
     handleResultClick,
     formatReleaseDate,
     truncateText,
-    getPoster
 }: {
     item: MovieItem;
     handleResultClick: (id: number) => void;
     formatReleaseDate: (dateString: string) => string;
     truncateText: (text: string, maxLength: number) => string;
-    getPoster: (path?: string | null) => string;
 }) => {
     // console.log("item in search results", item);
     const { getGenres } = QueryService;
@@ -43,21 +40,18 @@ const SearchResults = ({ item,
         >
             <div className="flex items-start space-x-4">
                 <div className="w-20 h-28 bg-gray-200 dark:bg-gray-800 rounded flex-shrink-0 overflow-hidden">
-                    {item.poster_path ? (
-                        <Image
-                            src={getPoster(item.poster_path)}
+                        <MediaImage
+                            path={item.poster_path}
+                            kind="poster"
+                            size="w185"
                             alt={item.title}
                             width={80}
                             height={120}
+                            sizes="80px"
                             className="object-cover w-full h-full"
                             placeholder="blur"
                             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                         />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
-                            <Search className="w-8 h-8" />
-                        </div>
-                    )}
                 </div>
 
                 <div className="flex-1 min-w-0">

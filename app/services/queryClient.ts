@@ -1,6 +1,5 @@
 // app/services/queryClient.ts
-const IMAGE_BASE_URL = "https://image.tmdb.org/t/p";
-const FALLBACK_POSTER = "/assets/icon.png";
+import { tmdbImageUrl } from "@/utils/tmdb/image";
 
 async function fetchFromAPI(endpoint: string) {
     const res = await fetch(endpoint);
@@ -22,23 +21,28 @@ function discoverParams(params: Record<string, string | number | undefined>) {
 }
 
 export const QueryService = {
-    discoverMovies: (params: Record<string, string | number | undefined> = {}) => {
+    discover: (kind: "movie" | "tv", params: Record<string, string | number | undefined> = {}) => {
         const query = discoverParams(params);
-        return fetchFromAPI(`/api/tmdb/discover${query ? `?${query}` : ""}`);
+        return fetchFromAPI(`/api/tmdb/discover?kind=${kind}${query ? `&${query}` : ""}`);
     },
+    discoverMovies: (params: Record<string, string | number | undefined> = {}) => QueryService.discover("movie", params),
     getDailyTrending: () => fetchFromAPI("/api/tmdb/trending"),
-    getGenres: () => fetchFromAPI("/api/tmdb/genres"),
+    getGenres: (kind: "movie" | "tv" = "movie") => fetchFromAPI(`/api/tmdb/genres?kind=${kind}`),
     getMoviesByGenre: (genreId: number, page: number = 1) => fetchFromAPI(`/api/tmdb/discover?with_genres=${genreId}&page=${page}`),
     getMovieDetails: (id: number) => fetchFromAPI(`/api/tmdb/movies/${id}`),
     searchMovies: (query: string) => {
         const encodedQuery = encodeURIComponent(query.trim());
         return fetchFromAPI(`/api/tmdb/search?query=${encodedQuery}`);
     },
+    searchTv: (query: string) => {
+        const encodedQuery = encodeURIComponent(query.trim());
+        return fetchFromAPI(`/api/tmdb/search?kind=tv&query=${encodedQuery}`);
+    },
     searchMoviesWithPage: (query: string, page: number = 1) => {
         const encodedQuery = encodeURIComponent(query.trim());
         return fetchFromAPI(`/api/tmdb/search?query=${encodedQuery}&page=${page}`);
     },
-    getPoster: (path?: string | null, size?: string) => path ? `${IMAGE_BASE_URL}/${size || "w500"}${path}` : FALLBACK_POSTER,
+    getPoster: (path?: string | null, size = "w500") => tmdbImageUrl(path, "poster", size as "w500") || "/assets/poster-placeholder.svg",
     getSimilar: async (id: number) => {
         const details = await fetchFromAPI(`/api/tmdb/movies/${id}`);
         return details.similar || { results: [] };

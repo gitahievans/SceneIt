@@ -3,6 +3,7 @@ export interface MovieItem {
     backdrop_path?: string | null,
     id: number,
     title: string,
+    name?: string,
     original_title?: string,
     overview: string,
     poster_path: string | null,
@@ -11,11 +12,25 @@ export interface MovieItem {
     genre_ids: number[],
     popularity?: number,
     release_date: string,
+    first_air_date?: string,
     video?: boolean,
     vote_average: number,
     vote_count?: number,
     runtime: number | null,
     providers?: Provider[]
+}
+
+export type ContentKind = "movie" | "tv";
+
+export interface HeroCandidate {
+    kind: ContentKind;
+    id: number;
+    title: string;
+    overview: string;
+    rating: number;
+    posterPath: string | null;
+    backdropPath: string;
+    trailerKey?: string;
 }
 
 export interface MovieResponse {

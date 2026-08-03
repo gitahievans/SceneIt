@@ -7,6 +7,7 @@ import { pageMetadata } from "@/utils/seo/metadata";
 import { tmdbServer } from "@/utils/tmdb/server";
 import { slugify } from "@/utils/seo/site";
 import { providerAllowlist } from "@/utils/content/providers";
+import CatalogHero from "@/components/Hero/CatalogHero";
 
 export const metadata: Metadata = pageMetadata("Movies to Watch", "Explore trending, top-rated, mood-based, decade, and occasion movie recommendations selected by SceneIt.", "/movies");
 
@@ -20,6 +21,7 @@ export default async function MoviesPage() {
         <h1 className="mt-2 text-4xl font-bold text-gray-950 dark:text-white">Movies to Watch</h1>
         <p className="mt-4 text-lg leading-8 text-gray-600 dark:text-gray-300">Find your next movie by mood, decade, occasion, genre, or streaming service. SceneIt combines practical filters with transparent editorial criteria.</p>
       </header>
+      <CatalogHero kind="movie" trending={data.results} />
       <section>
         <h2 className="mb-5 text-2xl font-bold dark:text-white">Trending movies</h2>
         <PublicMediaGrid items={data.results.slice(0, 10)} kind="movie" />

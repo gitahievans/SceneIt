@@ -116,12 +116,30 @@ export const tmdbServer = {
       new URLSearchParams({ language: "en-US", watch_region: region }),
       60 * 60 * 6
     ),
+  tvProviders: (region = "US") =>
+    fetchTmdb<ProviderResponse>(
+      "/watch/providers/tv",
+      new URLSearchParams({ language: "en-US", watch_region: region }),
+      60 * 60 * 6
+    ),
+  providers: async (region = "US") => {
+    const [movies, tv] = await Promise.all([
+      tmdbServer.movieProviders(region),
+      tmdbServer.tvProviders(region),
+    ]);
+    const merged = new Map<number, ProviderResponse["results"][number]>();
+    [...movies.results, ...tv.results].forEach((provider) => {
+      const current = merged.get(provider.provider_id);
+      if (!current || provider.display_priority < current.display_priority) merged.set(provider.provider_id, provider);
+    });
+    return { results: [...merged.values()].sort((a, b) => a.display_priority - b.display_priority || a.provider_name.localeCompare(b.provider_name)) };
+  },
   details: (kind: "movie" | "tv", id: string) =>
     fetchTmdb<any>(
       `/${kind}/${id}`,
       new URLSearchParams({
         language: "en-US",
-        append_to_response: "recommendations,similar,watch/providers,credits,keywords",
+        append_to_response: "videos,recommendations,similar,watch/providers,credits,keywords",
       })
     ),
   movieDetails: (id: string) =>
@@ -140,7 +158,7 @@ export const tmdbServer = {
       new URLSearchParams({ language: "en-US", query, page })
     ),
   searchTv: (query: string, page = "1") =>
-    fetchTmdb<{ results: Array<{ id: number; name: string; overview: string; first_air_date?: string; popularity?: number }> }>(
+    fetchTmdb<MovieResponse>(
       "/search/tv",
       new URLSearchParams({ language: "en-US", query, page })
     ),

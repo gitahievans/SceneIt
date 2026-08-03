@@ -1,7 +1,6 @@
-import { QueryService } from "@/app/services/queryClient";
 import { MovieItem } from "@/types/types";
 import { Film } from "lucide-react";
-import Image from "next/image";
+import MediaImage from "@/components/Common/MediaImage";
 import { DefaultSection } from "./SearchComponent";
 
 export const renderDefaultContent = (defaultSections: DefaultSection[], handleResultClick: (id: number) => void, formatReleaseDate: (dateString: string) => string) => (
@@ -30,20 +29,17 @@ export const renderDefaultContent = (defaultSections: DefaultSection[], handleRe
                             className="group cursor-pointer bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden hover:bg-gray-200 dark:hover:bg-gray-700 transition-all duration-200 hover:scale-105 shadow-sm hover:shadow-md"
                         >
                             <div className="aspect-[2/3] relative bg-gray-200 dark:bg-gray-900">
-                                {item.poster_path ? (
-                                    <Image
-                                        src={QueryService.getPoster(item.poster_path)}
+                                    <MediaImage
+                                        path={item.poster_path}
+                                        kind="poster"
+                                        size="w342"
                                         alt={item.title}
                                         fill
+                                        sizes="(max-width: 768px) 50vw, 25vw"
                                         className="object-cover"
                                         placeholder="blur"
                                         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                                     />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center">
-                                        <Film className="w-12 h-12 text-gray-400 dark:text-gray-500" />
-                                    </div>
-                                )}
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                                 {item.vote_average && (
                                     <div className="absolute top-2 right-2 bg-black/70 backdrop-blur-sm px-2 py-1 rounded">

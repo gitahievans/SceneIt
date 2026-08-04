@@ -5,44 +5,34 @@ import { User } from "@supabase/supabase-js";
 import { Heart } from "lucide-react";
 import { useAuth } from "../Common/Providers";
 import { trackEvent } from "../Analytics/AnalyticsConsent";
+import type { MediaType } from "@/types/types";
+import { updateFavorite } from "@/utils/interactions";
 
-export const toggleLike = async (user: User | null, movieId: number | undefined, liked: boolean, setLiked: (liked: boolean) => void, setLoading: (loading: boolean) => void) => {
-  if (!user) return alert("Log in to like this movie");
+export const toggleLike = async (user: User | null, mediaType: MediaType, mediaId: number | undefined, liked: boolean, setLiked: (liked: boolean) => void, setLoading: (loading: boolean) => void) => {
+  if (!user) return alert("Log in to favorite this title");
+  if (!mediaId) return;
 
   setLoading(true);
 
   try {
-    const action = liked ? "unfavorited" : "favorited";
-
-    const res = await fetch("/api/interactions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        user_id: user.id,
-        movie_id: movieId,
-        action,
-      }),
-    });
-
-    if (res.ok) {
-      setLiked(!liked);
-    } else {
-      const errorData = await res.json();
-      alert(`Failed to ${action.replace('ed', '')} movie: ${errorData.error}`);
-    }
+    await updateFavorite(mediaType, mediaId, liked ? "unfavorited" : "favorited");
+    setLiked(!liked);
   } catch (error) {
     console.error("Error toggling like:", error);
-    alert("Failed to update like status");
+    const message = error instanceof Error ? error.message : "Failed to update like status";
+    alert(`Failed to update favorite: ${message}`);
   } finally {
     setLoading(false);
   }
 };
 
-export const checkLikedStatus = async (user: User | null, movieId: number | undefined, setLiked: (liked: boolean) => void) => {
-  if (!user) return;
+export const checkLikedStatus = async (user: User | null, mediaType: MediaType, mediaId: number | undefined, setLiked: (liked: boolean) => void) => {
+  if (!user || !mediaId) return;
 
   try {
-    const res = await fetch(`/api/interactions/check?user_id=${user.id}&movie_id=${movieId}&action=favorited`);
+    const params = new URLSearchParams({ media_type: mediaType, media_id: String(mediaId), action: "favorited" });
+    const res = await fetch(`/api/interactions/check?${params}`);
+    if (!res.ok) throw new Error("Favorite status request failed");
     const data = await res.json();
     setLiked(data.exists || false);
   } catch (error) {
@@ -50,18 +40,18 @@ export const checkLikedStatus = async (user: User | null, movieId: number | unde
   }
 };
 
-export default function LikeButton({ movieId }: { movieId: number | undefined }) {
+export default function LikeButton({ mediaType, mediaId }: { mediaType: MediaType; mediaId: number | undefined }) {
   const { user } = useAuth();
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    checkLikedStatus(user, movieId, setLiked);
-  }, [user, movieId]);
+    checkLikedStatus(user, mediaType, mediaId, setLiked);
+  }, [user, mediaType, mediaId]);
 
   return (
     <button
-      onClick={() => { trackEvent("favorite_save_attempted", { movie_id: movieId || 0, authenticated: Boolean(user) }); toggleLike(user, movieId, liked, setLiked, setLoading); }}
+      onClick={() => { trackEvent("favorite_save_attempted", { media_type: mediaType, media_id: mediaId || 0, authenticated: Boolean(user) }); toggleLike(user, mediaType, mediaId, liked, setLiked, setLoading); }}
       disabled={loading}
       className={`
         group relative flex items-center gap-3 

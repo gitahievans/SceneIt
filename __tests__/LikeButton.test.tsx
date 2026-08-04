@@ -1,8 +1,10 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 
+const mockUser = { id: "tester" };
+
 // mock a user
 jest.mock("@/components/Common/Providers", () => ({
-    useAuth: jest.fn(() => ({ user: { id: 'tester' } }))
+    useAuth: jest.fn(() => ({ user: mockUser }))
 }));
 
 import LikeButton from "@/components/DetailsPage/LikeButton";
@@ -12,7 +14,12 @@ describe("LikeButton", () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        mockFetch.mockReset();
         global.fetch = mockFetch;
+        mockFetch.mockResolvedValue({
+            ok: true,
+            json: async () => ({ exists: false })
+        });
     });
 
     afterEach(() => {
@@ -26,7 +33,7 @@ describe("LikeButton", () => {
             json: async () => ({ exists: false })
         });
 
-        render(<LikeButton movieId={1234} />);
+        render(<LikeButton mediaType="movie" mediaId={1234} />);
         
         await waitFor(() => {
             expect(screen.getByText("Add to Favorites")).toBeInTheDocument();
@@ -40,7 +47,7 @@ describe("LikeButton", () => {
             json: async () => ({ exists: false })
         });
 
-        render(<LikeButton movieId={1234} />);
+        render(<LikeButton mediaType="movie" mediaId={1234} />);
 
         // Wait for initial render to complete
         await waitFor(() => {
@@ -70,8 +77,8 @@ describe("LikeButton", () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user_id: 'tester',
-                movie_id: 1234,
+                media_type: 'movie',
+                media_id: 1234,
                 action: 'favorited'
             })
         });
@@ -84,7 +91,7 @@ describe("LikeButton", () => {
             json: async () => ({ exists: true })
         });
 
-        render(<LikeButton movieId={1234} />);
+        render(<LikeButton mediaType="tv" mediaId={1234} />);
 
         await waitFor(() => {
             expect(screen.getByText("Added to Favorites")).toBeInTheDocument();
@@ -110,10 +117,24 @@ describe("LikeButton", () => {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                user_id: 'tester',
-                movie_id: 1234,
+                media_type: 'tv',
+                media_id: 1234,
                 action: 'unfavorited'
             })
         });
+    });
+
+    it("recovers from a failed TV favorite request", async () => {
+        const alert = jest.spyOn(window, "alert").mockImplementation(() => undefined);
+        mockFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ exists: false }) })
+            .mockResolvedValueOnce({ ok: false, json: async () => ({ error: "Nope" }) });
+
+        render(<LikeButton mediaType="tv" mediaId={55} />);
+        await screen.findByText("Add to Favorites");
+        fireEvent.click(screen.getByText("Add to Favorites"));
+
+        await waitFor(() => expect(alert).toHaveBeenCalledWith("Failed to update favorite: Nope"));
+        expect(screen.getByText("Add to Favorites")).toBeEnabled();
     });
 });

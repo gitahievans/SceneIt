@@ -1,68 +1,61 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { z } from "zod";
+
+const interactionSchema = z.object({
+    media_type: z.enum(["movie", "tv"]),
+    media_id: z.number().int().positive(),
+    action: z.enum(["favorited", "unfavorited"]),
+    rating: z.number().min(0).max(10).optional(),
+}).strict();
 
 export async function POST(req: Request) {
     try {
         const supabase = await createClient();
-        const body = await req.json();
-
-        const { user_id, movie_id, action, rating } = body;
-
-        if (!user_id || !movie_id || !action) {
-            return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
 
-        if (action === "favorited") {
-            await supabase
-                .from("user_movie_interactions")
-                .delete()
-                .eq('user_id', user_id)
-                .eq('movie_id', movie_id)
-                .eq('action', 'favorited');
+        const parsed = interactionSchema.safeParse(await req.json().catch(() => null));
+        if (!parsed.success) {
+            return NextResponse.json({ error: "Invalid interaction request" }, { status: 400 });
+        }
 
+        const { media_type, media_id, action, rating } = parsed.data;
+
+        if (action === "favorited") {
             const { error } = await supabase
-                .from("user_movie_interactions")
-                .insert([{
-                    user_id,
-                    movie_id,
+                .from("user_media_interactions")
+                .upsert({
+                    user_id: user.id,
+                    media_type,
+                    media_id,
                     action: "favorited",
                     rating
-                }]);
+                }, { onConflict: "user_id,media_type,media_id,action" });
 
             if (error) throw error;
-            return NextResponse.json({ message: "Movie favorited" }, { status: 200 });
+            return NextResponse.json({ message: "Media favorited" }, { status: 200 });
 
         } else if (action === "unfavorited") {
             const { error } = await supabase
-                .from("user_movie_interactions")
+                .from("user_media_interactions")
                 .delete()
-                .eq('user_id', user_id)
-                .eq('movie_id', movie_id)
+                .eq('user_id', user.id)
+                .eq('media_type', media_type)
+                .eq('media_id', media_id)
                 .eq('action', 'favorited');
 
             if (error) throw error;
-            return NextResponse.json({ message: "Movie unfavorited" }, { status: 200 });
+            return NextResponse.json({ message: "Media unfavorited" }, { status: 200 });
         }
 
-
-        const { error } = await supabase.from("user_movie_interactions").insert([{
-            user_id,
-            movie_id,
-            action,
-            rating
-        }]);
-
-        if (error) throw error;
-
-        return NextResponse.json({ message: "Interaction recorded" }, { status: 200 });
+        return NextResponse.json({ error: "Invalid interaction request" }, { status: 400 });
 
     }
     catch (error: unknown) {
-        let message = "Failed to record interaction";
-        if (error instanceof Error) {
-            message += ": " + error.message;
-        }
         console.error("Error recording interaction:", error);
-        return NextResponse.json({ error: message }, { status: 500 });
+        return NextResponse.json({ error: "Failed to record interaction" }, { status: 500 });
     }
 }

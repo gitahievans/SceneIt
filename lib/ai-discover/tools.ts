@@ -310,14 +310,14 @@ export function createSceneItTools(state: ToolExecutionState) {
         const [interests, watched, favorites, searches] = await Promise.all([
           supabase.from("user_interests").select("genre_id").eq("user_id", user.id),
           supabase.from("user_movie_interactions").select("movie_id").eq("user_id", user.id).eq("action", "watched"),
-          supabase.from("user_movie_interactions").select("movie_id").eq("user_id", user.id).eq("action", "favorited"),
+          supabase.from("user_media_interactions").select("media_id").eq("user_id", user.id).eq("media_type", "movie").eq("action", "favorited"),
           supabase.from("user_searches").select("query, genre_ids").eq("user_id", user.id).limit(20),
         ]);
         return {
           authenticated: true,
           interests: (interests.data || []).map((row) => row.genre_id),
           watched: (watched.data || []).map((row) => row.movie_id),
-          favorites: (favorites.data || []).map((row) => row.movie_id),
+          favorites: (favorites.data || []).map((row) => row.media_id),
           recentSearches: searches.data || [],
         };
       },

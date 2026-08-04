@@ -62,13 +62,11 @@ function DiscoverHero() {
             return;
         } else {
             if (mainMovie) {
-                fetch("/api/interactions", {
+                fetch("/api/interactions/watch", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                      user_id: user.id,
                       movie_id: mainMovie.id,
-                      action: "watched",
                     }),
                   });
             }
@@ -82,7 +80,7 @@ function DiscoverHero() {
             open();
             return;
         } else {
-            toggleLike(user!, mainMovie?.id, liked, setLiked, setLoading);
+            toggleLike(user!, "movie", mainMovie?.id, liked, setLiked, setLoading);
         }
     }
 
@@ -98,7 +96,7 @@ function DiscoverHero() {
     }, [videos]);
 
     useEffect(() => {
-        checkLikedStatus(user, mainMovie?.id, setLiked);
+        checkLikedStatus(user, "movie", mainMovie?.id, setLiked);
     }, [user, mainMovie?.id]);
 
     if (!mainMovie) {

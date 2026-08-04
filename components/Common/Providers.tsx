@@ -6,6 +6,7 @@ import { ReactNode, useState, createContext, useContext, useEffect } from "react
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { ThemeProvider } from "next-themes";
+import { ToastContainer } from "react-toastify";
 
 type AuthContextType = {
   user: User | null;
@@ -69,6 +70,14 @@ export default function Providers({ children }: { children: ReactNode }) {
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={true}>
           <MantineProvider>
             {children}
+            <ToastContainer
+              position="bottom-center"
+              autoClose={5000}
+              newestOnTop
+              closeOnClick={false}
+              theme="dark"
+              aria-label="Notifications"
+            />
           </MantineProvider>
         </ThemeProvider>
       </AuthProvider>

@@ -145,7 +145,7 @@ const MovieDetailsClient = ({ movieId }: { movieId: number }) => {
                 )}
 
                 <div className="flex items-center gap-4 pt-4">
-                  <LikeButton movieId={movieId} />
+                  <LikeButton mediaType="movie" mediaId={movieId} />
                   <WatchButton movieId={movieId} />
                 </div>
               </div>

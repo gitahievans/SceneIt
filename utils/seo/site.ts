@@ -3,7 +3,7 @@ export const SITE_NAME = "SceneIt — AI Movie Recommendations";
 export const SITE_URL = (
   process.env.SITE_URL ||
   process.env.NEXT_PUBLIC_SITE_URL ||
-  "https://sceneit.app"
+  "https://www.sceneit.site"
 ).replace(/\/$/, "");
 
 export function absoluteUrl(path = "/") {
@@ -22,4 +22,8 @@ export function slugify(value: string) {
 
 export function mediaPath(kind: "movie" | "tv", id: number, title: string) {
   return `/${kind === "movie" ? "movies" : "tv"}/${id}-${slugify(title)}`;
+}
+
+export function tvSeasonPath(id: number, title: string, seasonNumber: number) {
+  return `${mediaPath("tv", id, title)}/season/${seasonNumber}`;
 }

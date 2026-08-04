@@ -30,6 +30,7 @@ export const QueryService = {
     getGenres: (kind: "movie" | "tv" = "movie") => fetchFromAPI(`/api/tmdb/genres?kind=${kind}`),
     getMoviesByGenre: (genreId: number, page: number = 1) => fetchFromAPI(`/api/tmdb/discover?with_genres=${genreId}&page=${page}`),
     getMovieDetails: (id: number) => fetchFromAPI(`/api/tmdb/movies/${id}`),
+    getTvDetails: (id: number) => fetchFromAPI(`/api/tmdb/tv/${id}`),
     searchMovies: (query: string) => {
         const encodedQuery = encodeURIComponent(query.trim());
         return fetchFromAPI(`/api/tmdb/search?query=${encodedQuery}`);

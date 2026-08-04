@@ -1,4 +1,10 @@
-import { MovieResponse, ProviderResponse, WatchProvidersResponse } from "@/types/types";
+import {
+  MovieResponse,
+  ProviderResponse,
+  TvDetails,
+  TvSeasonDetails,
+  WatchProvidersResponse,
+} from "@/types/types";
 
 const BASE_URL = "https://api.themoviedb.org/3";
 
@@ -163,9 +169,9 @@ export const tmdbServer = {
       new URLSearchParams({ language: "en-US", query, page })
     ),
   tvDetails: (id: string) =>
-    fetchTmdb(`/tv/${id}`, new URLSearchParams({ language: "en-US" })),
+    fetchTmdb<TvDetails>(`/tv/${id}`, new URLSearchParams({ language: "en-US" })),
   tvSeason: (id: string, seasonNumber: number) =>
-    fetchTmdb(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" })),
+    fetchTmdb<TvSeasonDetails>(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" })),
   tvEpisode: (id: string, seasonNumber: number, episodeNumber: number) =>
     fetchTmdb(
       `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`,

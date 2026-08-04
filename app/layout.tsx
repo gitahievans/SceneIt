@@ -5,6 +5,7 @@ import Script from "next/script";
 import AnalyticsConsent from "@/components/Analytics/AnalyticsConsent";
 import '@mantine/core/styles.css';
 import '@mantine/carousel/styles.css';
+import 'react-toastify/dist/ReactToastify.css';
 import Providers from "@/components/Common/Providers";
 import GlobalLayout from "@/components/GlobalLayout";
 import { Geist } from "next/font/google";

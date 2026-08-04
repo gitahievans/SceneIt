@@ -11,13 +11,11 @@ const WatchButton = ({ movieId }: { movieId: number }) => {
 
     useEffect(() => {
         if (user) {
-          fetch("/api/interactions", {
+          fetch("/api/interactions/watch", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              user_id: user.id,
               movie_id: movieId,
-              action: "watched",
             }),
           });
         }

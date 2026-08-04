@@ -19,7 +19,7 @@ The image investigation found two concrete risks: the reworked grids removed the
   - Authenticated movie users: interests, favorites, watched history, searches, and current trends.
   - Authenticated TV users: mapped genre interests, searches, and current trends.
 - Require a valid backdrop for featured candidates; prefer an official YouTube trailer for the main card.
-- Movie heroes can retain movie-only favorite/watched actions. TV heroes provide trailer and detail navigation only; do not add TV interaction storage or database changes.
+- Movie heroes retain favorite/watched actions. TV heroes provide trailer, detail navigation, and show-level favorites; TV watch history remains out of scope.
 
 ### Delayed autoplay
 
@@ -35,7 +35,7 @@ The image investigation found two concrete risks: the reworked grids removed the
 - Public navigation: Movies, TV, AI Discover, Providers.
 - Authenticated navigation additionally includes For You and Favorites.
 - For You links to `/discover`; authentication protection and `noindex` remain in place.
-- Preserve the existing AI Discover, favorites, watch, authentication, and movie-personalization behavior.
+- Preserve AI Discover, watch, authentication, and movie-personalization behavior while combining movie and TV favorites.
 
 ### Provider browsing
 
@@ -75,7 +75,7 @@ The image investigation found two concrete risks: the reworked grids removed the
 - Add a shared hero candidate model containing media kind, ID, title, overview, rating, poster/backdrop paths, and optional trailer key.
 - Add typed TMDB image sizes and a helper returning a valid URL or `null`.
 - Extend the server-side TMDB layer for TV discovery, provider union data, genre filtering, hero candidates, and trailer lookup while preserving existing cache durations.
-- Do not modify the movie interaction schema or introduce TV favorites/watch-history fields.
+- Store favorites in the media-aware `user_media_interactions` table while retaining the old movie-interaction table temporarily for rollback and movie-only watched history.
 
 ## Verification
 

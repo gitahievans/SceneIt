@@ -118,7 +118,7 @@ export default function CatalogHero({ kind, trending }: { kind: ContentKind; tre
             <Link href={detail} className="rounded-full bg-white px-4 py-2 text-sm font-semibold text-gray-950">View details</Link>
             {trailerKey && <button type="button" onClick={togglePlay} aria-label={playing ? "Pause trailer" : "Play trailer"} className="rounded-full bg-black/60 p-2.5">{playing ? <Pause size={18} /> : <Play size={18} />}</button>}
             {trailerKey && <button type="button" onClick={() => setMuted((value) => !value)} aria-label={muted ? "Unmute trailer" : "Mute trailer"} className="rounded-full bg-black/60 p-2.5">{muted ? <VolumeX size={18} /> : <Volume2 size={18} />}</button>}
-            {kind === "movie" && <div className="[&_button]:rounded-full [&_button]:p-2.5 [&_span]:hidden"><LikeButton movieId={main.id} /></div>}
+            <div className="[&_button]:rounded-full [&_button]:p-2.5 [&_span]:hidden"><LikeButton mediaType={kind} mediaId={main.id} /></div>
           </div>
         </div>
       </article>

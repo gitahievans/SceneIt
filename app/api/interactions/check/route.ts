@@ -1,41 +1,43 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { z } from "zod";
+
+const statusSchema = z.object({
+    media_type: z.enum(["movie", "tv"]),
+    media_id: z.coerce.number().int().positive(),
+    action: z.literal("favorited"),
+});
 
 export async function GET(req: Request) {
     try {
         const { searchParams } = new URL(req.url);
-        const user_id = searchParams.get('user_id');
-        const movie_id = searchParams.get('movie_id');
-        const action = searchParams.get('action');
-
-        if (!user_id || !movie_id || !action) {
-            return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
 
-        const supabase = await createClient();
+        const parsed = statusSchema.safeParse(Object.fromEntries(searchParams));
+        if (!parsed.success) {
+            return NextResponse.json({ error: "Invalid interaction parameters" }, { status: 400 });
+        }
+        const { media_type, media_id, action } = parsed.data;
         
         const { data, error } = await supabase
-            .from("user_movie_interactions")
-            .select("*")
-            .eq('user_id', user_id)
-            .eq('movie_id', movie_id)
+            .from("user_media_interactions")
+            .select("id")
+            .eq('user_id', user.id)
+            .eq('media_type', media_type)
+            .eq('media_id', media_id)
             .eq('action', action)
-            .single();
+            .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') { 
-            throw error;
-        }
+        if (error) throw error;
 
         return NextResponse.json({ exists: !!data }, { status: 200 });
 
     } catch (error: unknown) {
-        let message = "Failed to check interaction";
-        if (error instanceof Error) {
-            message += ": " + error.message;
-        }
         console.error("Error checking interaction:", error);
-        return NextResponse.json({ 
-            error: message 
-        }, { status: 500 });
+        return NextResponse.json({ error: "Failed to check interaction" }, { status: 500 });
     }
 }

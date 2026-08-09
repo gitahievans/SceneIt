@@ -5,15 +5,14 @@ import { absoluteUrl, SITE_NAME } from "@/utils/seo/site";
 import { tmdbServer } from "@/utils/tmdb/server";
 import TrackEvent from "@/components/Analytics/TrackEvent";
 
-export default async function HomePage({ searchParams }: { searchParams: Promise<{ signup?: string }> }) {
-  const query = await searchParams;
+export default async function HomePage() {
   const [movies, tv] = await Promise.all([
     tmdbServer.trending("movie").catch(() => ({ results: [] })),
     tmdbServer.trending("tv").catch(() => ({ results: [] })),
   ]);
   return (
     <main>
-      {query.signup === "pending" && <TrackEvent name="signup_completed" />}
+      <TrackEvent name="signup_completed" whenQuery={{ name: "signup", value: "pending" }} />
       <section className="mx-auto max-w-7xl px-4 py-16 text-center md:py-24">
         <p className="text-sm font-semibold uppercase tracking-widest text-orange-600">SceneIt AI</p>
         <h1 className="mx-auto mt-4 max-w-4xl text-5xl font-extrabold tracking-tight text-gray-950 dark:text-white md:text-7xl">AI movie recommendations for whatever tonight feels like</h1>

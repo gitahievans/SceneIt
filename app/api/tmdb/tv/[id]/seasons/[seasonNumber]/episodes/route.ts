@@ -21,7 +21,10 @@ export async function GET(request: Request, { params }: Context) {
     const result = paginateSeason(season, page);
     if (!result) return Response.json({ error: "Episode page not found" }, { status: 404 });
     return Response.json(result, {
-      headers: { "Cache-Control": "private, max-age=300" },
+      headers: {
+        "Cache-Control": "public, max-age=300",
+        "Vercel-CDN-Cache-Control": "public, max-age=21600, stale-while-revalidate=86400",
+      },
     });
   } catch {
     return Response.json({ error: "Unable to load episodes from TMDB" }, { status: 502 });

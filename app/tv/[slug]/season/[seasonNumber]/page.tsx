@@ -14,8 +14,13 @@ import { findSeason, paginateSeason, parsePositiveInteger, parseSeasonNumber } f
 
 type Props = {
   params: Promise<{ slug: string; seasonNumber: string }>;
-  searchParams: Promise<{ page?: string | string[] }>;
 };
+
+export const revalidate = 21600;
+
+export function generateStaticParams() {
+  return [];
+}
 
 type SeasonPageData = {
   parsed: { id: string; suppliedSlug: string };
@@ -30,12 +35,7 @@ function parseShowSlug(slug: string) {
   return match ? { id: match[1], suppliedSlug: match[2] || "" } : null;
 }
 
-function requestedPage(value: string | string[] | undefined) {
-  if (Array.isArray(value)) return null;
-  return parsePositiveInteger(value || "1");
-}
-
-async function loadSeasonPage(slug: string, seasonValue: string, page: number): Promise<SeasonPageData | null> {
+async function loadSeasonPage(slug: string, seasonValue: string): Promise<SeasonPageData | null> {
   const parsed = parseShowSlug(slug);
   const seasonNumber = parseSeasonNumber(seasonValue);
   if (!parsed || !parsePositiveInteger(parsed.id) || seasonNumber === null) return null;
@@ -44,27 +44,23 @@ async function loadSeasonPage(slug: string, seasonValue: string, page: number): 
     const summary = findSeason(show, seasonNumber);
     if (!summary) return null;
     const season = await tmdbServer.tvSeason(parsed.id, seasonNumber);
-    const episodePage = paginateSeason(season, page);
+    const episodePage = paginateSeason(season, 1);
     return episodePage ? { parsed, show, summary, season, episodePage } : null;
   } catch {
     return null;
   }
 }
 
-export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
-  const [{ slug, seasonNumber }, query] = await Promise.all([params, searchParams]);
-  const page = requestedPage(query.page);
-  if (!page) return { title: "TV season not found", robots: { index: false } };
-  const data = await loadSeasonPage(slug, seasonNumber, page);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug, seasonNumber } = await params;
+  const data = await loadSeasonPage(slug, seasonNumber);
   if (!data) return { title: "TV season not found", robots: { index: false } };
   const title = data.show.name || "TV Show";
   const path = tvSeasonPath(data.show.id, title, data.summary.season_number);
-  const canonical = page > 1 ? `${path}?page=${page}` : path;
-  const pageSuffix = page > 1 ? ` — Episodes ${((page - 1) * 20) + 1}–${Math.min(page * 20, data.episodePage.totalEpisodes)}` : "";
   return pageMetadata(
-    `${title}: ${data.summary.name || `Season ${data.summary.season_number}`}${pageSuffix}`,
+    `${title}: ${data.summary.name || `Season ${data.summary.season_number}`}`,
     data.summary.overview || `Browse ${title} ${data.summary.name || `Season ${data.summary.season_number}`} episodes, air dates, runtimes, and ratings.`,
-    canonical
+    path
   );
 }
 
@@ -110,25 +106,21 @@ function seasonJsonLd(data: SeasonPageData) {
   };
 }
 
-export default async function SeasonPage({ params, searchParams }: Props) {
-  const [{ slug, seasonNumber }, query] = await Promise.all([params, searchParams]);
-  const page = requestedPage(query.page);
-  if (!page) notFound();
-  const data = await loadSeasonPage(slug, seasonNumber, page);
+export default async function SeasonPage({ params }: Props) {
+  const { slug, seasonNumber } = await params;
+  const data = await loadSeasonPage(slug, seasonNumber);
   if (!data) notFound();
   const { parsed, show, summary, season, episodePage } = data;
   const showTitle = show.name || "TV Show";
   const canonicalPath = tvSeasonPath(show.id, showTitle, summary.season_number);
   if (parsed.suppliedSlug !== slugify(showTitle)) {
-    permanentRedirect(page > 1 ? `${canonicalPath}?page=${page}` : canonicalPath);
+    permanentRedirect(canonicalPath);
   }
   const showPath = mediaPath("tv", show.id, showTitle);
   const seasonTitle = summary.name || `Season ${summary.season_number}`;
 
   return (
     <main className="min-h-screen bg-gray-950 text-white">
-      {page > 1 && <link rel="prev" href={absoluteUrl(page === 2 ? canonicalPath : `${canonicalPath}?page=${page - 1}`)} />}
-      {page < episodePage.totalPages && <link rel="next" href={absoluteUrl(`${canonicalPath}?page=${page + 1}`)} />}
       <header className="border-b border-white/10 bg-gradient-to-b from-indigo-950/60 to-gray-950">
         <div className="mx-auto grid max-w-7xl gap-8 px-4 py-10 md:grid-cols-[180px_1fr]">
           <div className="relative hidden aspect-[2/3] overflow-hidden rounded-xl bg-gray-900 md:block">
@@ -149,10 +141,10 @@ export default async function SeasonPage({ params, searchParams }: Props) {
       </section>
       <section className="mx-auto max-w-7xl px-4 pb-16">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
-          <div><h2 className="text-3xl font-bold">Episodes</h2><p className="mt-1 text-gray-400">Page {page} of {episodePage.totalPages}</p></div>
+          <div><h2 className="text-3xl font-bold">Episodes</h2><p className="mt-1 text-gray-400">Showing the first {episodePage.episodes.length} of {episodePage.totalEpisodes}</p></div>
           <p className="text-sm text-gray-400">Showing {episodePage.episodes.length} at a time</p>
         </div>
-        <SeasonEpisodes showId={show.id} seasonNumber={summary.season_number} seasonPath={canonicalPath} initialPage={page} totalPages={episodePage.totalPages} initialEpisodes={episodePage.episodes} />
+        <SeasonEpisodes showId={show.id} seasonNumber={summary.season_number} seasonPath={canonicalPath} initialPage={1} totalPages={episodePage.totalPages} initialEpisodes={episodePage.episodes} />
       </section>
       <JsonLd data={seasonJsonLd(data)} />
     </main>

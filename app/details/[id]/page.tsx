@@ -2,6 +2,12 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { tmdbServer } from "@/utils/tmdb/server";
 import { mediaPath } from "@/utils/seo/site";
 
+export const revalidate = 86400;
+
+export function generateStaticParams() {
+  return [];
+}
+
 export default async function LegacyDetailsPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!/^\d+$/.test(id)) notFound();

@@ -146,7 +146,8 @@ export const tmdbServer = {
       new URLSearchParams({
         language: "en-US",
         append_to_response: "videos,recommendations,similar,watch/providers,credits,keywords",
-      })
+      }),
+      kind === "movie" ? 60 * 60 * 24 : 60 * 60 * 6
     ),
   movieDetails: (id: string) =>
     fetchTmdb<any>(
@@ -169,9 +170,9 @@ export const tmdbServer = {
       new URLSearchParams({ language: "en-US", query, page })
     ),
   tvDetails: (id: string) =>
-    fetchTmdb<TvDetails>(`/tv/${id}`, new URLSearchParams({ language: "en-US" })),
+    fetchTmdb<TvDetails>(`/tv/${id}`, new URLSearchParams({ language: "en-US" }), 60 * 60 * 6),
   tvSeason: (id: string, seasonNumber: number) =>
-    fetchTmdb<TvSeasonDetails>(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" })),
+    fetchTmdb<TvSeasonDetails>(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" }), 60 * 60 * 6),
   tvEpisode: (id: string, seasonNumber: number, episodeNumber: number) =>
     fetchTmdb(
       `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`,

@@ -16,7 +16,7 @@ type Props = {
   params: Promise<{ slug: string; seasonNumber: string }>;
 };
 
-export const revalidate = 21600;
+export const revalidate = 259200; // 3 days
 
 export function generateStaticParams() {
   return [];

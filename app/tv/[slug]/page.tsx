@@ -5,7 +5,8 @@ import { pageMetadata } from "@/utils/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const revalidate = 21600;
+// Long enough to keep ISR writes low, short enough to pick up new episodes.
+export const revalidate = 259200; // 3 days
 
 export function generateStaticParams() {
   return [];

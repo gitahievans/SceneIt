@@ -5,7 +5,8 @@ import { pageMetadata } from "@/utils/seo/metadata";
 
 type Props = { params: Promise<{ slug: string }> };
 
-export const revalidate = 86400;
+// Movie details rarely change; a long window keeps ISR writes low.
+export const revalidate = 604800; // 7 days
 
 export function generateStaticParams() {
   return [];

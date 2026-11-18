@@ -40,10 +40,16 @@ function buildUrl(endpoint: string, params?: URLSearchParams) {
   return url;
 }
 
+const HOUR = 60 * 60;
+const DAY = 24 * HOUR;
+const WEEK = 7 * DAY;
+// 0 = don't store in the data cache (used for unbounded keys such as search queries).
+const NO_CACHE = 0;
+
 export async function fetchTmdb<T>(
   endpoint: string,
   params?: URLSearchParams,
-  revalidate = 60 * 60 * 24
+  revalidate: number = WEEK
 ): Promise<T> {
   if (!ACCESS_TOKEN && !API_KEY) {
     throw new Error("TMDB credentials are not configured");
@@ -109,10 +115,10 @@ export async function enrichMoviesWithRuntime(data: MovieResponse): Promise<Movi
 
 export const tmdbServer = {
   trending: (kind: "movie" | "tv") =>
-    fetchTmdb<MovieResponse>(`/trending/${kind}/day`, new URLSearchParams({ language: "en-US" }), 60 * 60),
+    fetchTmdb<MovieResponse>(`/trending/${kind}/day`, new URLSearchParams({ language: "en-US" }), HOUR),
   discover: (kind: "movie" | "tv", params: URLSearchParams) =>
-    fetchTmdb<MovieResponse>(`/discover/${kind}`, params, 60 * 60 * 6),
-  discoverMovies: (params: URLSearchParams) => fetchTmdb<MovieResponse>("/discover/movie", params, 60 * 60 * 6),
+    fetchTmdb<MovieResponse>(`/discover/${kind}`, params, DAY),
+  discoverMovies: (params: URLSearchParams) => fetchTmdb<MovieResponse>("/discover/movie", params, DAY),
   genresFor: (kind: "movie" | "tv") =>
     fetchTmdb<{ genres: Array<{ id: number; name: string }> }>(`/genre/${kind}/list`, new URLSearchParams({ language: "en-US" })),
   genres: () => fetchTmdb("/genre/movie/list", new URLSearchParams({ language: "en-US" })),
@@ -120,13 +126,13 @@ export const tmdbServer = {
     fetchTmdb<ProviderResponse>(
       "/watch/providers/movie",
       new URLSearchParams({ language: "en-US", watch_region: region }),
-      60 * 60 * 6
+      WEEK
     ),
   tvProviders: (region = "US") =>
     fetchTmdb<ProviderResponse>(
       "/watch/providers/tv",
       new URLSearchParams({ language: "en-US", watch_region: region }),
-      60 * 60 * 6
+      WEEK
     ),
   providers: async (region = "US") => {
     const [movies, tv] = await Promise.all([
@@ -147,7 +153,7 @@ export const tmdbServer = {
         language: "en-US",
         append_to_response: "videos,recommendations,similar,watch/providers,credits,keywords",
       }),
-      kind === "movie" ? 60 * 60 * 24 : 60 * 60 * 6
+      kind === "movie" ? WEEK : 3 * DAY
     ),
   movieDetails: (id: string) =>
     fetchTmdb<any>(
@@ -162,17 +168,19 @@ export const tmdbServer = {
   searchMovies: (query: string, page = "1") =>
     fetchTmdb<MovieResponse>(
       "/search/movie",
-      new URLSearchParams({ language: "en-US", query, page })
+      new URLSearchParams({ language: "en-US", query, page }),
+      NO_CACHE
     ),
   searchTv: (query: string, page = "1") =>
     fetchTmdb<MovieResponse>(
       "/search/tv",
-      new URLSearchParams({ language: "en-US", query, page })
+      new URLSearchParams({ language: "en-US", query, page }),
+      NO_CACHE
     ),
   tvDetails: (id: string) =>
-    fetchTmdb<TvDetails>(`/tv/${id}`, new URLSearchParams({ language: "en-US" }), 60 * 60 * 6),
+    fetchTmdb<TvDetails>(`/tv/${id}`, new URLSearchParams({ language: "en-US" }), 3 * DAY),
   tvSeason: (id: string, seasonNumber: number) =>
-    fetchTmdb<TvSeasonDetails>(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" }), 60 * 60 * 6),
+    fetchTmdb<TvSeasonDetails>(`/tv/${id}/season/${seasonNumber}`, new URLSearchParams({ language: "en-US" }), 3 * DAY),
   tvEpisode: (id: string, seasonNumber: number, episodeNumber: number) =>
     fetchTmdb(
       `/tv/${id}/season/${seasonNumber}/episode/${episodeNumber}`,
@@ -181,6 +189,7 @@ export const tmdbServer = {
   searchKeyword: (query: string) =>
     fetchTmdb<{ results: { id: number; name: string }[] }>(
       "/search/keyword",
-      new URLSearchParams({ query })
+      new URLSearchParams({ query }),
+      NO_CACHE
     ),
 };

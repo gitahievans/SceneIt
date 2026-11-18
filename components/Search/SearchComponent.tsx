@@ -10,6 +10,7 @@ import SpotLight from "./SpotLight";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../Common/Providers";
 import Loading from "../Common/Loader";
+import { mediaPath } from "@/utils/seo/site";
 
 interface SearchComponentProps {
     onSearchClick?: (event: React.MouseEvent) => void;
@@ -231,7 +232,7 @@ const SearchComponent: React.FC<SearchComponentProps> = ({
         if (isSpotlight) {
             onClose?.();
         }
-        router.push(`/details/${id}`);
+        router.push(movie?.title ? mediaPath("movie", id, movie.title) : `/movies/${id}`);
         setResultLoading(false);
     };
 

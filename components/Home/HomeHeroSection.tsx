@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { Check, Plus, TicketCheck } from "lucide-react";
 import Loading from "../Common/Loader";
 import MediaImage from "../Common/MediaImage";
+import { mediaPath } from "@/utils/seo/site";
 import LoginModal from "../Auth/LoginModal";
 import { useDisclosure } from "@mantine/hooks";
 import { checkLikedStatus, toggleLike } from "../DetailsPage/LikeButton";
@@ -227,7 +228,7 @@ function DiscoverHero() {
                                 </p>
                             </div>
 
-                            <div onClick={() => router.push(`/details/${movie?.id}`)} className="absolute z-50 inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
+                            <div onClick={() => movie && router.push(mediaPath("movie", movie.id, movie.title || ""))} className="absolute z-50 inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
                                 <div className="w-12 h-12 md:w-16 md:h-16 bg-orange-500/90 rounded-full flex items-center justify-center backdrop-blur-sm transform scale-75 group-hover:scale-100 transition-transform duration-300">
                                     <svg className="w-6 h-6 md:w-8 md:h-8 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
                                         <path d="M8 5v14l11-7z" />
